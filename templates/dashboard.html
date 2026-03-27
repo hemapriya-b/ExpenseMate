@@ -1,0 +1,588 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Expensio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard Specific Styles */
+    .welcome-section {
+        text-align: center;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, 
+            rgba(138, 43, 226, 0.1) 0%, 
+            rgba(75, 0, 130, 0.1) 100%);
+        border-radius: 20px;
+        border: 1px solid var(--card-border);
+    }
+    
+    .welcome-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .welcome-section p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Summary Cards Grid */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .summary-card {
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    
+    .summary-card:nth-child(1) {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .summary-card:nth-child(2) {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .summary-card:nth-child(3) {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .summary-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .summary-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .summary-card p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+    
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        border-radius: 15px;
+        background: var(--card-bg);
+        border: 2px solid var(--card-border);
+        transition: var(--transition);
+        text-decoration: none;
+        color: var(--text-light);
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-purple);
+        background: rgba(138, 43, 226, 0.1);
+    }
+    
+    .action-btn i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .action-btn span {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    /* Rooms Section */
+    .rooms-section {
+        margin-bottom: 3rem;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    
+    .view-all {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .view-all:hover {
+        text-decoration: underline;
+    }
+    
+    .rooms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .room-card {
+        padding: 1.5rem;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .room-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.1), 
+            transparent);
+        transition: 0.6s;
+    }
+    
+    .room-card:hover::before {
+        left: 100%;
+    }
+    
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .room-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+    }
+    
+    .room-code {
+        background: rgba(138, 43, 226, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-family: monospace;
+    }
+    
+    .room-stats {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .room-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .room-stat i {
+        color: var(--accent-purple);
+    }
+    
+    /* Recent Activity */
+    .activity-list {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid var(--card-border);
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(138, 43, 226, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+    
+    .activity-details {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-time {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .activity-amount {
+        font-weight: 600;
+        color: var(--success);
+    }
+    
+    /* Budget Tracker */
+    .budget-tracker {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid var(--card-border);
+        margin-top: 2rem;
+    }
+    
+    .budget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .budget-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    
+    .budget-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-blue);
+    }
+    
+    .progress-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: var(--secondary-gradient);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .budget-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .rooms-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h1>Welcome back, {{ current_user.username }}! 👋</h1>
+        <p>Track your expenses, manage group budgets, and stay on top of your finances.</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="summary-card">
+            <i class="fas fa-money-bill-wave"></i>
+            <h3>₹{{ "%.2f"|format(total_spent) }}</h3>
+            <p>Total You Spent</p>
+        </div>
+        
+        <div class="summary-card">
+            <i class="fas fa-hand-holding-usd"></i>
+            <h3>₹{{ "%.2f"|format(total_owed) }}</h3>
+            <p>Total Owed To You</p>
+        </div>
+        
+        <div class="summary-card">
+            <i class="fas fa-balance-scale"></i>
+            <h3>₹{{ "%.2f"|format(net_balance) }}</h3>
+            <p>Net Balance</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ url_for('create_room') }}" class="action-btn">
+            <i class="fas fa-plus-circle"></i>
+            <span>Create Room</span>
+        </a>
+        
+        <a href="{{ url_for('join_room') }}" class="action-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Join Room</span>
+        </a>
+        
+        <a href="{{ url_for('add_expense', room_id=0) }}" class="action-btn">
+            <i class="fas fa-receipt"></i>
+            <span>Add Expense</span>
+        </a>
+        
+        <a href="{{ url_for('charts') }}" class="action-btn">
+            <i class="fas fa-chart-bar"></i>
+            <span>View Charts</span>
+        </a>
+    </div>
+
+    <!-- Your Rooms -->
+    <div class="rooms-section">
+        <div class="section-header">
+            <h2 class="section-title">Your Rooms</h2>
+            <a href="{{ url_for('create_room') }}" class="view-all">
+                Create New Room <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if rooms %}
+        <div class="rooms-grid">
+            {% for room in rooms %}
+            <div class="card room-card">
+                <div class="room-header">
+                    <div class="room-name">{{ room.name }}</div>
+                    <div class="room-code">{{ room.room_code }}</div>
+                </div>
+                
+                <p class="room-description">{{ room.description or "No description" }}</p>
+                
+                <div class="room-stats">
+                    <div class="room-stat">
+                        <i class="fas fa-users"></i>
+                        <span>{{ room.members|length }} members</span>
+                    </div>
+                    <div class="room-stat">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ room.created_at.strftime('%b %d') }}</span>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('view_room', room_id=room.id) }}" 
+                   class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+                    Enter Room <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-door-closed"></i>
+            <h3>No Rooms Yet</h3>
+            <p>Create or join a room to start tracking group expenses!</p>
+            <a href="{{ url_for('create_room') }}" class="btn btn-primary mt-2">
+                Create Your First Room
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="section-header">
+                <h2 class="section-title">Recent Activity</h2>
+            </div>
+            
+            <div class="activity-list">
+                {% if personal_expenses %}
+                    {% for expense in personal_expenses %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            {% if expense.category == 'Food' %}
+                            <i class="fas fa-utensils"></i>
+                            {% elif expense.category == 'Travel' %}
+                            <i class="fas fa-car"></i>
+                            {% elif expense.category == 'Shopping' %}
+                            <i class="fas fa-shopping-bag"></i>
+                            {% else %}
+                            <i class="fas fa-receipt"></i>
+                            {% endif %}
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-title">{{ expense.description }}</div>
+                            <div class="activity-time">{{ expense.date.strftime('%b %d, %I:%M %p') }}</div>
+                        </div>
+                        <div class="activity-amount">₹{{ "%.2f"|format(expense.amount) }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <p>No recent activity</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Personal Budget Tracker -->
+        <div class="card">
+            <div class="budget-tracker">
+                <div class="budget-header">
+                    <h2 class="budget-title">Monthly Budget</h2>
+                    <div class="budget-amount">
+                        {% if personal_budget > 0 %}
+                        &#8377;{{ "%.2f"|format(personal_budget) }}
+                        {% else %}
+                        Not Set
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ budget_progress_pct }}%"></div>
+                </div>
+                
+                <div class="budget-info">
+                    <span>Spent: &#8377;{{ "%.2f"|format(monthly_spent) }}</span>
+                    <span>
+                        {% if personal_budget > 0 %}
+                        Remaining: &#8377;{{ "%.2f"|format(personal_budget - monthly_spent) }}
+                        {% else %}
+                        Set a budget to track
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-outline" style="width: 100%;" disabled>
+                        <i class="fas fa-edit"></i> Edit Budget
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dashboard specific JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate summary cards on load
+        const cards = document.querySelectorAll('.summary-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('floating');
+        });
+        
+        // Update progress bar animation
+        const progressFill = document.querySelector('.progress-fill');
+        setTimeout(() => {
+            progressFill.style.transition = 'width 1s ease';
+        }, 500);
+        
+        // Room card hover effect
+        const roomCards = document.querySelectorAll('.room-card');
+        roomCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(138, 43, 226, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+        
+        // Flash message auto dismiss
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(message => {
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transform = 'translateY(-20px)';
+                setTimeout(() => message.remove(), 300);
+            }, 4000);
+            
+            // Close button
+            const closeBtn = message.querySelector('.flash-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateY(-20px)';
+                    setTimeout(() => message.remove(), 300);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+

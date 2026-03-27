@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Expensio - Smart Planning & Budgeting{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+                <i class="fas fa-money-bill-wave"></i> EXPENSIO
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="{{ url_for('create_room') }}" class="nav-link">
+                    <i class="fas fa-plus-circle"></i> Create Room
+                </a>
+                <a href="{{ url_for('join_room') }}" class="nav-link">
+                    <i class="fas fa-sign-in-alt"></i> Join Room
+                </a>
+                <a href="{{ url_for('charts') }}" class="nav-link">
+                    <i class="fas fa-chart-pie"></i> Charts
+                </a>
+                <a href="{{ url_for('about') }}" class="nav-link">
+                    <i class="fas fa-info-circle"></i> About
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+                <div class="user-dropdown">
+                    <button class="user-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                        <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{{ url_for('personal_expense') }}" class="dropdown-item">
+                            <i class="fas fa-wallet"></i> Personal Expenses
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                        <button class="flash-close">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Expensio. Smart Planning & Budgeting.</p>
+            <p class="footer-links">
+                <a href="{{ url_for('about') }}">About</a> |
+                <a href="#">Privacy</a> |
+                <a href="#">Terms</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

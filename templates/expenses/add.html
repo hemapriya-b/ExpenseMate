@@ -1,0 +1,1395 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Expense - Expensio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Add Expense Specific Styles */
+    .add-expense-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .room-info-card {
+        background: rgba(138, 43, 226, 0.1);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--card-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .room-info-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .room-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .room-details h3 {
+        margin: 0 0 0.25rem 0;
+        color: var(--accent-blue);
+    }
+    
+    .room-details p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+    
+    .room-code {
+        background: rgba(138, 43, 226, 0.2);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-family: monospace;
+        font-size: 1rem;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+    
+    /* Expense Form */
+    .expense-form {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+    }
+    
+    /* Form Sections */
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+    }
+    
+    .section-description {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Input Groups */
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .input-group .required {
+        color: var(--danger);
+        font-size: 0.8em;
+    }
+    
+    .input-group .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        color: var(--text-light);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .input-group .form-control:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .input-group textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+    
+    /* Amount Input */
+    .amount-input {
+        position: relative;
+    }
+    
+    .amount-input .currency {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-purple);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .amount-input .form-control {
+        padding-left: 40px;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+    
+    /* Category Selection */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .category-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem 1rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .category-option:hover {
+        background: rgba(138, 43, 226, 0.1);
+        transform: translateY(-3px);
+    }
+    
+    .category-option.selected {
+        border-color: var(--accent-purple);
+        background: rgba(138, 43, 226, 0.15);
+    }
+    
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .category-food .category-icon {
+        background: rgba(0, 255, 157, 0.1);
+        color: var(--success);
+    }
+    
+    .category-travel .category-icon {
+        background: rgba(0, 212, 255, 0.1);
+        color: var(--accent-blue);
+    }
+    
+    .category-shopping .category-icon {
+        background: rgba(138, 43, 226, 0.1);
+        color: var(--accent-purple);
+    }
+    
+    .category-entertainment .category-icon {
+        background: rgba(255, 183, 77, 0.1);
+        color: var(--warning);
+    }
+    
+    .category-other .category-icon {
+        background: rgba(255, 107, 139, 0.1);
+        color: var(--danger);
+    }
+    
+    .category-name {
+        font-weight: 500;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Date Input */
+    .date-input {
+        position: relative;
+    }
+    
+    .date-input .calendar-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-purple);
+        pointer-events: none;
+    }
+    
+    /* Split Options */
+    .split-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .split-members-table {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.75rem;
+    }
+    
+    .split-member-row {
+        display: grid;
+        grid-template-columns: 1fr 160px;
+        gap: 1rem;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+    }
+    
+    .split-option {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .split-option:hover {
+        background: rgba(138, 43, 226, 0.1);
+    }
+    
+    .split-option.selected {
+        border-color: var(--accent-purple);
+        background: rgba(138, 43, 226, 0.15);
+    }
+    
+    .split-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .split-details {
+        flex: 1;
+    }
+    
+    .split-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--text-light);
+    }
+    
+    .split-description {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+    
+    /* Receipt Upload */
+    .receipt-upload {
+        border: 2px dashed var(--card-border);
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 1rem;
+    }
+    
+    .receipt-upload:hover {
+        border-color: var(--accent-purple);
+        background: rgba(138, 43, 226, 0.05);
+    }
+    
+    .receipt-upload i {
+        font-size: 3rem;
+        color: var(--accent-purple);
+        margin-bottom: 1rem;
+    }
+    
+    .receipt-upload h4 {
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+    
+    .receipt-upload p {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+    
+    .file-info {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(0, 212, 255, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .file-info.show {
+        display: block;
+    }
+    
+    /* Expense Preview */
+    .expense-preview {
+        background: rgba(0, 212, 255, 0.05);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .preview-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .preview-header i {
+        color: var(--accent-blue);
+        font-size: 1.5rem;
+    }
+    
+    .preview-header h3 {
+        margin: 0;
+        color: var(--accent-blue);
+    }
+    
+    .preview-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .preview-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    
+    .preview-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+    
+    .preview-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .form-actions .btn {
+        min-width: 150px;
+    }
+    
+    /* Quick Tips */
+    .quick-tips {
+        background: rgba(255, 183, 77, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 1px solid rgba(255, 183, 77, 0.2);
+    }
+    
+    .tips-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--warning);
+    }
+    
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .tips-list li {
+        padding: 0.5rem 0;
+        color: var(--text-muted);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .tips-list li:before {
+        content: '💡';
+        flex-shrink: 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-expense-container {
+            padding: 0 1rem;
+        }
+        
+        .expense-form {
+            padding: 1.5rem;
+        }
+        
+        .room-info-card {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .category-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .split-options {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .category-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-expense-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Add New Expense</h1>
+        <p>Track a new expense for your room. Fill in the details below to split costs fairly among members.</p>
+    </div>
+    
+    <!-- Room Info Card -->
+    <div class="room-info-card">
+        <div class="room-info-left">
+            <div class="room-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="room-details">
+                <h3>{{ room.name }}</h3>
+                <p>Add expense to this room</p>
+            </div>
+        </div>
+        <div class="room-code">
+            <i class="fas fa-key"></i> {{ room.room_code }}
+        </div>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }} mb-4">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="flash-close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Expense Form -->
+    <form method="POST" action="{{ url_for('add_expense', room_id=room.id) }}" class="expense-form" id="expenseForm" enctype="multipart/form-data">
+        <!-- Expense Details Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h2 class="section-title">Expense Details</h2>
+            </div>
+            
+            <p class="section-description">
+                Enter the basic information about your expense. Be descriptive so everyone understands what it's for.
+            </p>
+            
+            <div class="form-grid">
+                <!-- Description -->
+                <div class="input-group">
+                    <label for="description">
+                        <i class="fas fa-align-left"></i> Description <span class="required">*</span>
+                    </label>
+                    <input type="text" 
+                           id="description" 
+                           name="description" 
+                           class="form-control" 
+                           placeholder="e.g., Dinner at restaurant, Movie tickets, Groceries"
+                           required
+                           maxlength="200"
+                           autofocus>
+                    <div class="char-counter" style="text-align: right; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        <span id="descCounter">0</span>/200
+                    </div>
+                </div>
+                
+                <!-- Amount -->
+                <div class="input-group">
+                    <label for="amount">
+                        <i class="fas fa-rupee-sign"></i> Amount <span class="required">*</span>
+                    </label>
+                    <div class="amount-input">
+                        <span class="currency">₹</span>
+                        <input type="number" 
+                               id="amount" 
+                               name="amount" 
+                               class="form-control" 
+                               placeholder="0.00"
+                               required
+                               min="0.01"
+                               step="0.01"
+                               value="0.00">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category Selection -->
+            <div class="input-group">
+                <label>
+                    <i class="fas fa-tags"></i> Category <span class="required">*</span>
+                </label>
+                <div class="category-grid" id="categoryGrid">
+                    <div class="category-option category-food" data-category="Food">
+                        <div class="category-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="category-name">Food</div>
+                        <div class="category-examples" style="font-size: 0.8rem; color: var(--text-muted);">
+                            Restaurants, Groceries
+                        </div>
+                    </div>
+                    
+                    <div class="category-option category-travel" data-category="Travel">
+                        <div class="category-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="category-name">Travel</div>
+                        <div class="category-examples" style="font-size: 0.8rem; color: var(--text-muted);">
+                            Transport, Fuel, Flights
+                        </div>
+                    </div>
+                    
+                    <div class="category-option category-shopping" data-category="Shopping">
+                        <div class="category-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="category-name">Shopping</div>
+                        <div class="category-examples" style="font-size: 0.8rem; color: var(--text-muted);">
+                            Clothes, Electronics
+                        </div>
+                    </div>
+                    
+                    <div class="category-option category-entertainment" data-category="Entertainment">
+                        <div class="category-icon">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <div class="category-name">Entertainment</div>
+                        <div class="category-examples" style="font-size: 0.8rem; color: var(--text-muted);">
+                            Movies, Concerts, Games
+                        </div>
+                    </div>
+                    
+                    <div class="category-option category-other selected" data-category="Other">
+                        <div class="category-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="category-name">Other</div>
+                        <div class="category-examples" style="font-size: 0.8rem; color: var(--text-muted);">
+                            Miscellaneous
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="category" name="category" value="Other">
+            </div>
+            
+            <!-- Notes -->
+            <div class="input-group">
+                <label for="notes">
+                    <i class="fas fa-sticky-note"></i> Additional Notes (Optional)
+                </label>
+                <textarea id="notes" 
+                          name="notes" 
+                          class="form-control" 
+                          placeholder="Add any extra details about this expense..."
+                          maxlength="500"></textarea>
+                <div class="char-counter" style="text-align: right; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    <span id="notesCounter">0</span>/500
+                </div>
+            </div>
+        </div>
+        
+        <!-- Split & Payment Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2 class="section-title">Split & Payment</h2>
+            </div>
+            
+            <p class="section-description">
+                Specify how this expense should be split among room members.
+            </p>
+            
+            <!-- Split Options -->
+            <div class="input-group">
+                <label>
+                    <i class="fas fa-share-alt"></i> Split Method <span class="required">*</span>
+                </label>
+                <div class="split-options" id="splitOptions">
+                    <div class="split-option selected" data-split="equal">
+                        <div class="split-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="split-details">
+                            <div class="split-title">Equal Split</div>
+                            <div class="split-description">
+                                Divide equally among all room members
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="split-option" data-split="percentage">
+                        <div class="split-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="split-details">
+                            <div class="split-title">Percentage Split</div>
+                            <div class="split-description">
+                                Custom percentages for each member
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="split-option" data-split="custom">
+                        <div class="split-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="split-details">
+                            <div class="split-title">Custom Amounts</div>
+                            <div class="split-description">
+                                Specify exact amounts for each member
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="splitMethod" name="split_method" value="equal">
+            </div>
+
+            <div class="input-group">
+                <label>
+                    <i class="fas fa-users-cog"></i> Member Shares
+                </label>
+                <div class="split-members-table">
+                    {% for rm in room_members %}
+                    <div class="split-member-row">
+                        <div>
+                            <strong>{{ rm.member.username }}</strong>
+                            {% if rm.user_id == current_user.id %}<span style="color: var(--text-muted);"> (You)</span>{% endif %}
+                        </div>
+                        <div>
+                            <input type="hidden" name="split_user_id[]" value="{{ rm.user_id }}">
+                            <input type="number" name="split_percentage[]" class="form-control split-percentage" value="{{ (100 / (room_members|length))|round(2) }}" min="0" max="100" step="0.01">
+                            <input type="number" name="split_amount[]" class="form-control split-amount" value="0" min="0" step="0.01" style="display:none;">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <small style="color: var(--text-muted);">For equal split this is auto-calculated. For percentage/custom, edit values above.</small>
+            </div>
+            
+            <!-- Paid By -->
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="paidBy">
+                        <i class="fas fa-credit-card"></i> Paid By <span class="required">*</span>
+                    </label>
+                    <select id="paidBy" name="paid_by" class="form-control" required>
+                        {% for rm in room_members %}
+                        <option value="{{ rm.user_id }}" {% if rm.user_id == current_user.id %}selected{% endif %}>
+                            {% if rm.user_id == current_user.id %}You{% else %}{{ rm.member.username }}{% endif %} ({{ rm.member.username }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Date -->
+                <div class="input-group">
+                    <label for="date">
+                        <i class="fas fa-calendar"></i> Date <span class="required">*</span>
+                    </label>
+                    <div class="date-input">
+                        <input type="date" 
+                               id="date" 
+                               name="date" 
+                               class="form-control" 
+                               value="{{ now.strftime('%Y-%m-%d') }}"
+                               required>
+                        <i class="fas fa-calendar-alt calendar-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receipt Upload (Optional) -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-paperclip"></i>
+                </div>
+                <h2 class="section-title">Receipt (Optional)</h2>
+            </div>
+            
+            <p class="section-description">
+                Upload a photo or scan of your receipt for record keeping.
+            </p>
+            
+            <div class="receipt-upload" id="receiptUpload">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4>Upload Receipt</h4>
+                <p>Drag & drop or click to browse</p>
+                <div class="btn btn-outline">
+                    <i class="fas fa-folder-open"></i> Choose File
+                </div>
+                <input type="file" 
+                       id="receipt" 
+                       name="receipt" 
+                       accept="image/*,.pdf"
+                       style="display: none;">
+                
+                <div class="file-info" id="fileInfo">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i class="fas fa-file-invoice" style="font-size: 2rem; color: var(--accent-blue);"></i>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;" id="fileName">receipt.jpg</div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted);" id="fileSize">2.5 MB</div>
+                        </div>
+                        <button type="button" class="action-icon" id="removeFile" style="background: rgba(255, 107, 139, 0.1); color: var(--danger);">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Tips -->
+        <div class="quick-tips">
+            <div class="tips-header">
+                <i class="fas fa-lightbulb"></i>
+                <h3 style="margin: 0; font-size: 1.1rem;">Quick Tips</h3>
+            </div>
+            <ul class="tips-list">
+                <li>Be specific in your description for better tracking</li>
+                <li>Upload receipts to avoid confusion later</li>
+                <li>Split equally for shared expenses like dinners</li>
+                <li>Use custom split for personal items within group orders</li>
+                <li>Review the preview before submitting</li>
+            </ul>
+        </div>
+        
+        <!-- Expense Preview -->
+        <div class="expense-preview" id="expensePreview">
+            <div class="preview-header">
+                <i class="fas fa-eye"></i>
+                <h3>Expense Preview</h3>
+            </div>
+            <div class="preview-content">
+                <div class="preview-item">
+                    <div class="preview-label">Amount Per Person</div>
+                    <div class="preview-value" id="previewPerPerson">₹0.00</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Category</div>
+                    <div class="preview-value" id="previewCategory">Other</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Split Method</div>
+                    <div class="preview-value" id="previewSplit">Equal</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Total Members</div>
+                    <div class="preview-value" id="previewTotalMembers">{{ room_members|length }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('view_room', room_id=room.id) }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Room
+            </a>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn btn-outline" id="saveDraftBtn">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+                <button type="submit" class="btn btn-primary" id="submitExpenseBtn">
+                    <i class="fas fa-check-circle"></i> Add Expense
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const expenseForm = document.getElementById('expenseForm');
+        const descriptionInput = document.getElementById('description');
+        const amountInput = document.getElementById('amount');
+        const categoryGrid = document.getElementById('categoryGrid');
+        const categoryInput = document.getElementById('category');
+        const notesInput = document.getElementById('notes');
+        const splitOptions = document.getElementById('splitOptions');
+        const splitMethodInput = document.getElementById('splitMethod');
+        const splitPercentageInputs = Array.from(document.querySelectorAll('.split-percentage'));
+        const splitAmountInputs = Array.from(document.querySelectorAll('.split-amount'));
+        const receiptUpload = document.getElementById('receiptUpload');
+        const receiptInput = document.getElementById('receipt');
+        const fileInfo = document.getElementById('fileInfo');
+        const removeFileBtn = document.getElementById('removeFile');
+        const submitExpenseBtn = document.getElementById('submitExpenseBtn');
+        const saveDraftBtn = document.getElementById('saveDraftBtn');
+        
+        // Preview elements
+        const previewPerPerson = document.getElementById('previewPerPerson');
+        const previewCategory = document.getElementById('previewCategory');
+        const previewSplit = document.getElementById('previewSplit');
+        const previewTotalMembers = document.getElementById('previewTotalMembers');
+        const memberCount = {{ room_members|length }};
+        
+        // Character counters
+        const descCounter = document.getElementById('descCounter');
+        const notesCounter = document.getElementById('notesCounter');
+        
+        // Category selection
+        categoryGrid.querySelectorAll('.category-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                categoryGrid.querySelectorAll('.category-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Update hidden input
+                const category = this.getAttribute('data-category');
+                categoryInput.value = category;
+                previewCategory.textContent = category;
+                
+                // Add animation
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+        
+        // Split method selection
+        splitOptions.querySelectorAll('.split-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                splitOptions.querySelectorAll('.split-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Update hidden input
+                const splitMethod = this.getAttribute('data-split');
+                splitMethodInput.value = splitMethod;
+                
+                // Update preview
+                previewSplit.textContent = splitMethod.charAt(0).toUpperCase() + splitMethod.slice(1);
+                toggleSplitInputs(splitMethod);
+                updatePreview();
+                
+                // Add animation
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+        
+        // Receipt upload
+        receiptUpload.addEventListener('click', function() {
+            receiptInput.click();
+        });
+        
+        receiptInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+                
+                // Update file info
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('fileSize').textContent = fileSize;
+                
+                // Show file info
+                fileInfo.classList.add('show');
+                
+                // Change upload area style
+                receiptUpload.style.borderStyle = 'solid';
+                receiptUpload.style.borderColor = 'var(--accent-blue)';
+                receiptUpload.style.background = 'rgba(0, 212, 255, 0.05)';
+                
+                // Update icon and text
+                const icon = receiptUpload.querySelector('i');
+                const title = receiptUpload.querySelector('h4');
+                const text = receiptUpload.querySelector('p');
+                const btn = receiptUpload.querySelector('.btn');
+                
+                icon.className = 'fas fa-file-invoice';
+                icon.style.color = 'var(--accent-blue)';
+                title.textContent = 'Receipt Uploaded';
+                text.textContent = 'Click to change file';
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Change File';
+            }
+        });
+        
+        // Remove file
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            receiptInput.value = '';
+            fileInfo.classList.remove('show');
+            
+            // Reset upload area
+            receiptUpload.style.borderStyle = 'dashed';
+            receiptUpload.style.borderColor = '';
+            receiptUpload.style.background = '';
+            
+            const icon = receiptUpload.querySelector('i');
+            const title = receiptUpload.querySelector('h4');
+            const text = receiptUpload.querySelector('p');
+            const btn = receiptUpload.querySelector('.btn');
+            
+            icon.className = 'fas fa-cloud-upload-alt';
+            icon.style.color = '';
+            title.textContent = 'Upload Receipt';
+            text.textContent = 'Drag & drop or click to browse';
+            btn.innerHTML = '<i class="fas fa-folder-open"></i> Choose File';
+        });
+        
+        // Update character counters
+        function updateCharacterCounters() {
+            descCounter.textContent = descriptionInput.value.length;
+            notesCounter.textContent = notesInput.value.length;
+        }
+        
+        // Update preview in real-time
+        function updatePreview() {
+            const amount = parseFloat(amountInput.value) || 0;
+            const members = memberCount || 1;
+            
+            // Calculate per person amount
+            let perPerson = amount / members;
+            if (isNaN(perPerson)) perPerson = 0;
+            
+            previewPerPerson.textContent = `₹${perPerson.toFixed(2)}`;
+            
+            // Update category preview
+            previewCategory.textContent = categoryInput.value;
+            
+            // Update split preview
+            const splitMethod = splitMethodInput.value;
+            previewSplit.textContent = splitMethod.charAt(0).toUpperCase() + splitMethod.slice(1);
+            if (previewTotalMembers) previewTotalMembers.textContent = members;
+        }
+
+        function toggleSplitInputs(splitMethod) {
+            if (splitMethod === 'percentage') {
+                splitPercentageInputs.forEach(input => input.style.display = 'block');
+                splitAmountInputs.forEach(input => input.style.display = 'none');
+            } else if (splitMethod === 'custom') {
+                splitPercentageInputs.forEach(input => input.style.display = 'none');
+                splitAmountInputs.forEach(input => input.style.display = 'block');
+            } else {
+                splitPercentageInputs.forEach(input => {
+                    input.style.display = 'block';
+                    input.value = (100 / memberCount).toFixed(2);
+                });
+                splitAmountInputs.forEach(input => {
+                    input.style.display = 'none';
+                    input.value = '0';
+                });
+            }
+        }
+        
+        // Format amount input
+        amountInput.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value) && value >= 0) {
+                this.value = value.toFixed(2);
+            } else {
+                this.value = '0.00';
+            }
+            updatePreview();
+        });
+        
+        // Event listeners for real-time updates
+        descriptionInput.addEventListener('input', updateCharacterCounters);
+        amountInput.addEventListener('input', updatePreview);
+        notesInput.addEventListener('input', updateCharacterCounters);
+        splitPercentageInputs.forEach(input => input.addEventListener('input', updatePreview));
+        splitAmountInputs.forEach(input => input.addEventListener('input', updatePreview));
+        
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
+        
+        // Save draft functionality
+        saveDraftBtn.addEventListener('click', function() {
+            const expenseData = {
+                description: descriptionInput.value,
+                amount: amountInput.value,
+                category: categoryInput.value,
+                notes: notesInput.value,
+                splitMethod: splitMethodInput.value,
+                date: document.getElementById('date').value
+            };
+            
+            localStorage.setItem('expensio_draft', JSON.stringify(expenseData));
+            
+            showFlash('Expense saved as draft!', 'success');
+            
+            // Animate button
+            this.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            this.style.background = 'var(--success)';
+            this.style.color = 'white';
+            this.style.borderColor = 'var(--success)';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-save"></i> Save Draft';
+                this.style.background = '';
+                this.style.color = '';
+                this.style.borderColor = '';
+            }, 2000);
+        });
+        
+        // Load draft if exists
+        const savedDraft = localStorage.getItem('expensio_draft');
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                descriptionInput.value = draft.description || '';
+                amountInput.value = draft.amount || '0.00';
+                categoryInput.value = draft.category || 'Other';
+                notesInput.value = draft.notes || '';
+                splitMethodInput.value = draft.splitMethod || 'equal';
+                if (draft.date) document.getElementById('date').value = draft.date;
+                
+                // Update UI to reflect loaded values
+                categoryGrid.querySelectorAll('.category-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.getAttribute('data-category') === draft.category);
+                });
+                
+                splitOptions.querySelectorAll('.split-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.getAttribute('data-split') === draft.splitMethod);
+                });
+                
+                updateCharacterCounters();
+                updatePreview();
+                
+                showFlash('Draft expense loaded!', 'info');
+            } catch (e) {
+                console.error('Error loading draft:', e);
+            }
+        }
+        
+        // Form validation
+        expenseForm.addEventListener('submit', function(e) {
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            
+            if (!description) {
+                e.preventDefault();
+                showError('Please enter an expense description');
+                descriptionInput.focus();
+                return;
+            }
+            
+            if (!amount || amount <= 0) {
+                e.preventDefault();
+                showError('Please enter a valid amount greater than 0');
+                amountInput.focus();
+                return;
+            }
+
+            if (splitMethodInput.value === 'percentage') {
+                const totalPct = splitPercentageInputs.reduce((acc, input) => acc + (parseFloat(input.value) || 0), 0);
+                if (Math.abs(totalPct - 100) > 0.01) {
+                    e.preventDefault();
+                    showError('Percentage split must add up to 100%.');
+                    return;
+                }
+            }
+
+            if (splitMethodInput.value === 'custom') {
+                const totalCustom = splitAmountInputs.reduce((acc, input) => acc + (parseFloat(input.value) || 0), 0);
+                if (Math.abs(totalCustom - amount) > 0.01) {
+                    e.preventDefault();
+                    showError('Custom amounts must add up to the expense total.');
+                    return;
+                }
+            }
+            
+            // Clear draft
+            localStorage.removeItem('expensio_draft');
+            
+            // Show loading state
+            submitExpenseBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Expense...';
+            submitExpenseBtn.disabled = true;
+        });
+        
+        // Initialize
+        updateCharacterCounters();
+        toggleSplitInputs(splitMethodInput.value);
+        updatePreview();
+        
+        // Add some visual effects
+        const formSections = document.querySelectorAll('.form-section');
+        formSections.forEach((section, index) => {
+            section.style.animationDelay = `${index * 0.1}s`;
+            section.style.animation = 'fadeInUp 0.5s ease forwards';
+            section.style.opacity = '0';
+            
+            setTimeout(() => {
+                section.style.opacity = '1';
+            }, 300 + (index * 100));
+        });
+        
+        // Show error function
+        function showError(message) {
+            // Remove existing error
+            const existingError = document.querySelector('.flash-error');
+            if (existingError) existingError.remove();
+            
+            // Create error element
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'flash-message flash-error mb-4';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                ${message}
+                <button class="flash-close">&times;</button>
+            `;
+            
+            // Insert after room info card
+            const roomCard = document.querySelector('.room-info-card');
+            roomCard.parentNode.insertBefore(errorDiv, roomCard.nextSibling);
+            
+            // Add close functionality
+            errorDiv.querySelector('.flash-close').addEventListener('click', function() {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => errorDiv.remove(), 300);
+            });
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.style.opacity = '0';
+                    errorDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => errorDiv.remove(), 300);
+                }
+            }, 5000);
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Show flash message
+        function showFlash(message, type = 'info') {
+            // Remove existing flash
+            const existingFlash = document.querySelector('.flash-message');
+            if (existingFlash && existingFlash.className.includes('flash-error')) {
+                existingFlash.remove();
+            }
+            
+            const flashDiv = document.createElement('div');
+            flashDiv.className = `flash-message flash-${type} mb-4`;
+            flashDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+                <button class="flash-close">&times;</button>
+            `;
+            
+            const roomCard = document.querySelector('.room-info-card');
+            roomCard.parentNode.insertBefore(flashDiv, roomCard.nextSibling);
+            
+            flashDiv.querySelector('.flash-close').addEventListener('click', function() {
+                flashDiv.style.opacity = '0';
+                flashDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => flashDiv.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.style.opacity = '0';
+                    flashDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => flashDiv.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Auto-calculate and update preview when amount changes
+        amountInput.addEventListener('input', function() {
+            setTimeout(updatePreview, 100);
+        });
+        
+        // Quick category shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey) {
+                switch(e.key) {
+                    case '1':
+                        selectCategory('Food');
+                        break;
+                    case '2':
+                        selectCategory('Travel');
+                        break;
+                    case '3':
+                        selectCategory('Shopping');
+                        break;
+                    case '4':
+                        selectCategory('Entertainment');
+                        break;
+                    case '5':
+                        selectCategory('Other');
+                        break;
+                }
+            }
+        });
+        
+        function selectCategory(category) {
+            categoryGrid.querySelectorAll('.category-option').forEach(opt => {
+                if (opt.getAttribute('data-category') === category) {
+                    opt.click();
+                    showFlash(`Category set to ${category}`, 'info');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

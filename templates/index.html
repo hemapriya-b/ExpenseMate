@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}Expensio - Smart Expense Tracking{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">Track, Split & Save <span class="text-primary">Together</span></h1>
+        <p class="lead mb-4">The smart way to manage group expenses and personal budgets.</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow border-0">
+                    <div class="card-body">
+                        <div class="icon-wrapper mb-3">
+                            <i class="fas fa-users fa-3x text-primary"></i>
+                        </div>
+                        <h3>Group Expenses</h3>
+                        <p>Split bills with friends, family, or roommates effortlessly.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow border-0">
+                    <div class="card-body">
+                        <div class="icon-wrapper mb-3">
+                            <i class="fas fa-chart-pie fa-3x text-success"></i>
+                        </div>
+                        <h3>Personal Budgets</h3>
+                        <p>Track your spending and stay within budget with visual insights.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow border-0">
+                    <div class="card-body">
+                        <div class="icon-wrapper mb-3">
+                            <i class="fas fa-file-export fa-3x text-warning"></i>
+                        </div>
+                        <h3>Export Data</h3>
+                        <p>Download your expense reports in CSV or PDF format.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-sign-in-alt"></i> Get Started
+            </a>
+            <a href="{{ url_for('signup') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-user-plus"></i> Create Account
+            </a>
+            {% else %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+            <a href="{{ url_for('create_room') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-plus-circle"></i> Create Room
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

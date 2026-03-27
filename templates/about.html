@@ -1,0 +1,957 @@
+{% extends "layout.html" %}
+
+{% block title %}About Expensio - Smart Planning & Budgeting{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* About Page Specific Styles */
+    .about-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, 
+            rgba(15, 12, 41, 0.9) 0%, 
+            rgba(48, 43, 99, 0.9) 50%, 
+            rgba(36, 36, 62, 0.9) 100%);
+        border-radius: 25px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--card-border);
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.3) 0%, transparent 50%);
+        z-index: -1;
+    }
+    
+    .hero-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 25px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        font-size: 3rem;
+        box-shadow: 0 15px 35px rgba(138, 43, 226, 0.4);
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+    
+    .hero-tagline {
+        display: inline-block;
+        padding: 8px 24px;
+        background: rgba(138, 43, 226, 0.2);
+        border-radius: 20px;
+        font-size: 1.1rem;
+        color: var(--accent-purple);
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+    
+    /* Mission Section */
+    .mission-section {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--accent-blue);
+        position: relative;
+        display: inline-block;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--secondary-gradient);
+        border-radius: 2px;
+    }
+    
+    .mission-statement {
+        font-size: 1.2rem;
+        color: var(--text-light);
+        max-width: 800px;
+        margin: 0 auto 3rem;
+        line-height: 1.8;
+    }
+    
+    /* Features Grid */
+    .features-section {
+        margin-bottom: 4rem;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .feature-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--accent-purple);
+        box-shadow: 0 20px 40px rgba(138, 43, 226, 0.3);
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: var(--secondary-gradient);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+    }
+    
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-light);
+    }
+    
+    .feature-description {
+        color: var(--text-muted);
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+    
+    /* How It Works */
+    .how-it-works {
+        margin-bottom: 4rem;
+    }
+    
+    .steps-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        max-width: 800px;
+        margin: 3rem auto 0;
+        position: relative;
+    }
+    
+    .steps-container::before {
+        content: '';
+        position: absolute;
+        left: 40px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--card-border);
+        z-index: -1;
+    }
+    
+    .step-card {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .step-card:hover {
+        transform: translateX(10px);
+        border-color: var(--accent-purple);
+    }
+    
+    .step-number {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        color: white;
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .step-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .step-description {
+        color: var(--text-muted);
+        line-height: 1.6;
+        font-size: 1.05rem;
+    }
+    
+    /* Technology Stack */
+    .tech-stack {
+        margin-bottom: 4rem;
+    }
+    
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+    
+    .tech-card {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .tech-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-blue);
+    }
+    
+    .tech-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .tech-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+    
+    .tech-purpose {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    /* Team Section */
+    .team-section {
+        margin-bottom: 4rem;
+    }
+    
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .team-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .team-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-purple);
+    }
+    
+    .team-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--secondary-gradient);
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .team-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+    
+    .team-role {
+        color: var(--accent-blue);
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+    
+    .team-bio {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, 
+            rgba(138, 43, 226, 0.1) 0%, 
+            rgba(75, 0, 130, 0.1) 100%);
+        border-radius: 25px;
+        margin-bottom: 4rem;
+        border: 1px solid rgba(138, 43, 226, 0.2);
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .cta-description {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+    
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    /* Footer Links */
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--card-border);
+        flex-wrap: wrap;
+    }
+    
+    .footer-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .footer-link:hover {
+        color: var(--accent-blue);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .about-container {
+            padding: 0 1rem;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+        
+        .step-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .steps-container::before {
+            display: none;
+        }
+        
+        .step-number {
+            margin: 0 auto;
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .cta-buttons .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .features-grid,
+        .tech-grid,
+        .team-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+        }
+        
+        .feature-card,
+        .step-card,
+        .tech-card,
+        .team-card {
+            padding: 1.5rem;
+        }
+        
+        .footer-links {
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-logo">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <h1 class="hero-title">EXPENSIO</h1>
+        <p class="hero-subtitle">
+            Smart Planning & Budgeting for Groups and Individuals. 
+            Track, Split, and Manage Expenses with Ease.
+        </p>
+        <div class="hero-tagline">
+            <i class="fas fa-bolt"></i> Simplify Your Finances
+        </div>
+    </div>
+    
+    <!-- Mission Statement -->
+    <div class="mission-section">
+        <h2 class="section-title">Our Mission</h2>
+        <p class="mission-statement">
+            At Expensio, we believe managing finances should be simple, transparent, and stress-free. 
+            Whether you're planning a trip with friends, managing household expenses, or tracking personal 
+            spending, our platform provides the tools you need to stay in control of your money.
+        </p>
+    </div>
+    
+    <!-- Key Features -->
+    <div class="features-section">
+        <h2 class="section-title">Why Choose Expensio?</h2>
+        
+        <div class="features-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">Group Expense Splitting</h3>
+                <p class="feature-description">
+                    Create rooms for events and automatically split expenses equally among members. 
+                    No more manual calculations or confusion about who owes what.
+                </p>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="feature-title">Visual Insights</h3>
+                <p class="feature-description">
+                    Get beautiful charts and graphs that show your spending patterns. 
+                    Understand where your money goes with intuitive visualizations.
+                </p>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <h3 class="feature-title">Export & Reports</h3>
+                <p class="feature-description">
+                    Download detailed expense reports as CSV files. 
+                    Perfect for record keeping, tax purposes, or financial analysis.
+                </p>
+            </div>
+            
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="feature-title">Personal Budgeting</h3>
+                <p class="feature-description">
+                    Set monthly budgets and track your personal expenses. 
+                    Get alerts and insights to help you stay within your financial goals.
+                </p>
+            </div>
+            
+            <!-- Feature 5 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title">Responsive Design</h3>
+                <p class="feature-description">
+                    Access Expensio from any device – desktop, tablet, or mobile. 
+                    Our responsive design ensures a seamless experience everywhere.
+                </p>
+            </div>
+            
+            <!-- Feature 6 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Secure & Private</h3>
+                <p class="feature-description">
+                    Your financial data is safe with us. We use industry-standard 
+                    security practices to protect your information and ensure privacy.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How It Works -->
+    <div class="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        
+        <div class="steps-container">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3 class="step-title">Create an Account</h3>
+                    <p class="step-description">
+                        Sign up for free and create your profile. It takes less than a minute 
+                        to get started with Expensio.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3 class="step-title">Create or Join a Room</h3>
+                    <p class="step-description">
+                        Create a room for your event or join an existing room using a unique 
+                        room code shared by friends.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3 class="step-title">Add Expenses</h3>
+                    <p class="step-description">
+                        Start adding expenses to your room. Include descriptions, amounts, 
+                        categories, and upload receipts if needed.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3 class="step-title">Split Automatically</h3>
+                    <p class="step-description">
+                        Expensio automatically calculates how much each person owes or 
+                        should receive, eliminating manual calculations.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3 class="step-title">Track & Analyze</h3>
+                    <p class="step-description">
+                        View charts, export reports, and gain insights into your spending 
+                        patterns. Stay on top of your finances effortlessly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Technology Stack -->
+    <div class="tech-stack">
+        <h2 class="section-title">Built With Modern Technology</h2>
+        
+        <div class="tech-grid">
+            <!-- Tech 1 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fab fa-python"></i>
+                </div>
+                <h3 class="tech-name">Python Flask</h3>
+                <p class="tech-purpose">Backend Framework</p>
+            </div>
+            
+            <!-- Tech 2 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="tech-name">SQLite/PostgreSQL</h3>
+                <p class="tech-purpose">Database</p>
+            </div>
+            
+            <!-- Tech 3 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fab fa-js"></i>
+                </div>
+                <h3 class="tech-name">JavaScript</h3>
+                <p class="tech-purpose">Frontend Interactivity</p>
+            </div>
+            
+            <!-- Tech 4 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fab fa-html5"></i>
+                </div>
+                <h3 class="tech-name">HTML5 & CSS3</h3>
+                <p class="tech-purpose">Modern Web Standards</p>
+            </div>
+            
+            <!-- Tech 5 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="tech-name">Chart.js</h3>
+                <p class="tech-purpose">Data Visualization</p>
+            </div>
+            
+            <!-- Tech 6 -->
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <h3 class="tech-name">Custom CSS</h3>
+                <p class="tech-purpose">Aesthetic Design</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Section -->
+    <div class="team-section">
+        <h2 class="section-title">Meet the Creator</h2>
+        
+        <div class="team-grid">
+            <!-- Team Member 1 -->
+            <div class="team-card">
+                <div class="team-avatar">
+                    H
+                </div>
+                <h3 class="team-name">Harini</h3>
+                <div class="team-role">Full Stack Developer</div>
+                <p class="team-bio">
+                    Passionate about creating beautiful, functional web applications 
+                    that solve real-world problems. Believes in clean code and user-centric design.
+                </p>
+            </div>
+            
+            <!-- Team Member 2 -->
+            <div class="team-card">
+                <div class="team-avatar">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="team-name">Our Community</h3>
+                <div class="team-role">Users & Contributors</div>
+                <p class="team-bio">
+                    Expensio is built for and with feedback from our amazing user community. 
+                    Your suggestions help shape the future of our platform.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <h2 class="cta-title">Ready to Simplify Your Finances?</h2>
+        <p class="cta-description">
+            Join thousands of users who are already managing their expenses smarter with Expensio. 
+            It's free, easy to use, and packed with powerful features.
+        </p>
+        <div class="cta-buttons">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Go to Dashboard
+            </a>
+            <a href="{{ url_for('create_room') }}" class="btn btn-outline btn-lg">
+                <i class="fas fa-plus-circle"></i> Create Your First Room
+            </a>
+            {% else %}
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus"></i> Sign Up Free
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Login to Account
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <a href="{{ url_for('dashboard') }}" class="footer-link">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="{{ url_for('charts') }}" class="footer-link">
+            <i class="fas fa-chart-pie"></i> Analytics
+        </a>
+        <a href="#" class="footer-link">
+            <i class="fas fa-question-circle"></i> Help Center
+        </a>
+        <a href="#" class="footer-link">
+            <i class="fas fa-file-contract"></i> Privacy Policy
+        </a>
+        <a href="#" class="footer-link">
+            <i class="fas fa-envelope"></i> Contact Us
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animations to feature cards
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.6s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 100));
+        });
+        
+        // Add animations to step cards
+        const stepCards = document.querySelectorAll('.step-card');
+        stepCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.15}s`;
+            card.style.animation = 'fadeInRight 0.6s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 150));
+        });
+        
+        // Add animations to tech cards
+        const techCards = document.querySelectorAll('.tech-card');
+        techCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.5s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 100));
+        });
+        
+        // Add animations to team cards
+        const teamCards = document.querySelectorAll('.team-card');
+        teamCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.2}s`;
+            card.style.animation = 'fadeInUp 0.6s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 200));
+        });
+        
+        // Add keyframe animations if not present
+        if (!document.querySelector('#aboutAnimations')) {
+            const animations = `
+                <style id="aboutAnimations">
+                    @keyframes fadeInRight {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-30px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(0);
+                        }
+                    }
+                    
+                    @keyframes fadeInUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(30px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                </style>
+            `;
+            document.head.insertAdjacentHTML('beforeend', animations);
+        }
+        
+        // Add interactive hover effects
+        const cards = document.querySelectorAll('.feature-card, .tech-card, .team-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.zIndex = '10';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.zIndex = '';
+            });
+        });
+        
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animated elements
+        document.querySelectorAll('.feature-card, .step-card, .tech-card, .team-card').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#') {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Add typing effect to hero tagline
+        const tagline = document.querySelector('.hero-tagline');
+        const originalText = tagline.textContent;
+        tagline.textContent = '';
+        
+        let i = 0;
+        function typeWriter() {
+            if (i < originalText.length) {
+                tagline.textContent += originalText.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        // Start typing after a delay
+        setTimeout(typeWriter, 1000);
+    });
+</script>
+{% endblock %}

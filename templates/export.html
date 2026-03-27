@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+
+{% block title %}Export Data - Expensio{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4"><i class="fas fa-file-export text-warning"></i> Export Your Data</h1>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title">Choose Export Options</h4>
+                    
+                    <div class="row mt-4">
+                        <!-- Personal Expenses Export -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-user text-primary"></i> Personal Expenses</h5>
+                                    <p>Export all your personal expense records.</p>
+                                    
+                                    <form method="POST" action="{{ url_for('export_personal') }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Date Range</label>
+                                            <select name="date_range" class="form-select">
+                                                <option value="all">All Time</option>
+                                                <option value="month">This Month</option>
+                                                <option value="year">This Year</option>
+                                                <option value="custom">Custom Range</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Format</label>
+                                            <select name="format" class="form-select">
+                                                <option value="csv">CSV</option>
+                                                <option value="pdf">PDF</option>
+                                                <option value="excel">Excel</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-download"></i> Export Personal Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Room Expenses Export -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-users text-success"></i> Room Expenses</h5>
+                                    <p>Export expenses from a specific room.</p>
+                                    
+                                    <form method="POST" action="{{ url_for('export_room') }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Select Room</label>
+                                            <select name="room_id" class="form-select" required>
+                                                <option value="">Choose a room...</option>
+                                                {% for room in rooms %}
+                                                <option value="{{ room.id }}">{{ room.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Format</label>
+                                            <select name="format" class="form-select">
+                                                <option value="csv">CSV</option>
+                                                <option value="pdf">PDF</option>
+                                                <option value="excel">Excel</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-download"></i> Export Room Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Exports -->
+                    <div class="mt-5">
+                        <h5>Recent Exports</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Format</th>
+                                        <th>File</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for export in exports %}
+                                    <tr>
+                                        <td>{{ export.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>{{ export.export_type }}</td>
+                                        <td>{{ export.format|upper }}</td>
+                                        <td>
+                                            <a href="{{ url_for('download_export', export_id=export.id) }}">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">Completed</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

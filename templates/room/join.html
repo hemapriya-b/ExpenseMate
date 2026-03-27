@@ -1,0 +1,848 @@
+{% extends "layout.html" %}
+
+{% block title %}Join Room - Expensio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Join Room Specific Styles */
+    .join-room-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Join Methods */
+    .join-methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .method-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        height: 100%;
+    }
+    
+    .method-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-purple);
+        box-shadow: 0 15px 35px rgba(138, 43, 226, 0.2);
+    }
+    
+    .method-card.active {
+        border-color: var(--accent-blue);
+        background: rgba(0, 212, 255, 0.1);
+    }
+    
+    .method-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .method-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .method-description {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .method-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(138, 43, 226, 0.2);
+        color: var(--accent-purple);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: auto;
+    }
+    
+    /* Join Form */
+    .join-form-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .join-form-container.active {
+        display: block;
+    }
+    
+    .form-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-header i {
+        font-size: 2rem;
+        color: var(--accent-blue);
+    }
+    
+    .form-header h2 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    /* Code Input Form */
+    .code-form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .input-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .input-group .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        color: var(--text-light);
+        font-size: 1.1rem;
+        transition: var(--transition);
+        text-align: center;
+        letter-spacing: 2px;
+        font-family: monospace;
+    }
+    
+    .input-group .form-control:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Room Info Display */
+    .room-info {
+        background: rgba(138, 43, 226, 0.1);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--card-border);
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .room-info.active {
+        display: block;
+    }
+    
+    .info-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-header i {
+        color: var(--accent-purple);
+        font-size: 1.5rem;
+    }
+    
+    .info-header h3 {
+        margin: 0;
+        color: var(--accent-blue);
+    }
+    
+    .room-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .detail-item {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    
+    .detail-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+    
+    .detail-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-actions .btn {
+        min-width: 150px;
+    }
+    
+    /* Invitation List */
+    .invitations-list {
+        margin-top: 3rem;
+    }
+    
+    .invitations-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .invitations-header h3 {
+        margin: 0;
+        color: var(--accent-blue);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .invitations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .invitation-card {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+    }
+    
+    .invitation-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--accent-purple);
+    }
+    
+    .invitation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .invitation-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+    }
+    
+    .invitation-code {
+        background: rgba(138, 43, 226, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-family: monospace;
+    }
+    
+    .invitation-description {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    
+    .invitation-stats {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .invitation-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Empty State */
+    .empty-invitations {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-invitations i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .join-room-container {
+            padding: 0 1rem;
+        }
+        
+        .join-methods {
+            grid-template-columns: 1fr;
+        }
+        
+        .method-card {
+            padding: 2rem;
+        }
+        
+        .join-form-container {
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .invitations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="join-room-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Join a Room</h1>
+        <p>Connect with friends and family by joining their expense tracking rooms. Enter a room code or browse available invitations.</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }} mb-4">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="flash-close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Join Methods -->
+    <div class="join-methods">
+        <!-- Method 1: Enter Code -->
+        <div class="method-card" id="codeMethodCard">
+            <div class="method-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <h3 class="method-title">Enter Room Code</h3>
+            <p class="method-description">
+                Have a room code from a friend? Enter it here to join their expense tracking room instantly.
+            </p>
+            <span class="method-badge">Most Common</span>
+        </div>
+        
+        <!-- Method 2: Browse Invitations -->
+        <div class="method-card" id="inviteMethodCard">
+            <div class="method-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h3 class="method-title">Browse Invitations</h3>
+            <p class="method-description">
+                View rooms you've been invited to and join them with a single click.
+            </p>
+            <span class="method-badge">Coming Soon</span>
+        </div>
+    </div>
+    
+    <!-- Code Input Form -->
+    <div class="join-form-container" id="codeForm">
+        <div class="form-header">
+            <i class="fas fa-key"></i>
+            <h2>Enter Room Details</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('join_room') }}" class="code-form" id="joinRoomForm">
+            <div class="input-group">
+                <label for="roomName">
+                    <i class="fas fa-hashtag"></i> Room Name
+                </label>
+                <input type="text" 
+                       id="roomName" 
+                       name="room_name" 
+                       class="form-control" 
+                       placeholder="Enter the exact room name"
+                       required>
+            </div>
+            
+            <div class="input-group">
+                <label for="roomCode">
+                    <i class="fas fa-lock"></i> Room Code
+                </label>
+                <input type="text" 
+                       id="roomCode" 
+                       name="room_code" 
+                       class="form-control" 
+                       placeholder="Enter 6-digit room code"
+                       required
+                       maxlength="6"
+                       pattern="[A-Z0-9]{6}"
+                       title="Please enter a 6-character room code (letters and numbers only)">
+                <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">
+                    Case-sensitive 6-character code (e.g., ABC123)
+                </small>
+            </div>
+            
+            <!-- Room Info Preview -->
+            <div class="room-info" id="roomInfoPreview">
+                <div class="info-header">
+                    <i class="fas fa-door-open"></i>
+                    <h3>Room Preview</h3>
+                </div>
+                <div class="room-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Room Name</div>
+                        <div class="detail-value" id="previewRoomName">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Created By</div>
+                        <div class="detail-value" id="previewCreator">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Members</div>
+                        <div class="detail-value" id="previewMembers">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" id="previewStatus">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" id="backToMethods">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="submit" class="btn btn-primary" id="joinRoomBtn">
+                    <i class="fas fa-sign-in-alt"></i> Join Room
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Invitations List -->
+    <div class="invitations-list" id="invitationsList">
+        <div class="invitations-header">
+            <h3>
+                <i class="fas fa-envelope"></i>
+                Your Invitations
+            </h3>
+            <button class="btn btn-outline btn-sm" onclick="refreshInvitations()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+        
+        <!-- Placeholder for dynamic content -->
+        <div class="empty-invitations" id="emptyInvitations">
+            <i class="fas fa-inbox"></i>
+            <h3>No Invitations Yet</h3>
+            <p>When friends invite you to rooms, they'll appear here.</p>
+            <p class="mt-2" style="font-size: 0.9rem;">
+                <i class="fas fa-lightbulb"></i>
+                Ask your friends to share their room code with you
+            </p>
+        </div>
+        
+        <!-- Sample Invitations (for demo) -->
+        <div class="invitations-grid" id="invitationsGrid" style="display: none;">
+            <!-- Invitation 1 -->
+            <div class="invitation-card">
+                <div class="invitation-header">
+                    <div class="invitation-name">Goa Trip 2024</div>
+                    <div class="invitation-code">GOA2024</div>
+                </div>
+                <p class="invitation-description">
+                    Planning expenses for our annual Goa trip. Let's track flights, accommodation, and activities together.
+                </p>
+                <div class="invitation-stats">
+                    <div class="invitation-stat">
+                        <i class="fas fa-users"></i>
+                        <span>4 members</span>
+                    </div>
+                    <div class="invitation-stat">
+                        <i class="fas fa-calendar"></i>
+                        <span>Created: Jan 15</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm w-100 mt-2">
+                    <i class="fas fa-check"></i> Accept Invitation
+                </button>
+            </div>
+            
+            <!-- Invitation 2 -->
+            <div class="invitation-card">
+                <div class="invitation-header">
+                    <div class="invitation-name">Office Team Lunch</div>
+                    <div class="invitation-code">LUNCH01</div>
+                </div>
+                <p class="invitation-description">
+                    Monthly team lunch expenses. Split bills and track who paid for what.
+                </p>
+                <div class="invitation-stats">
+                    <div class="invitation-stat">
+                        <i class="fas fa-users"></i>
+                        <span>8 members</span>
+                    </div>
+                    <div class="invitation-stat">
+                        <i class="fas fa-calendar"></i>
+                        <span>Created: Jan 10</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm w-100 mt-2">
+                    <i class="fas fa-check"></i> Accept Invitation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const codeMethodCard = document.getElementById('codeMethodCard');
+        const inviteMethodCard = document.getElementById('inviteMethodCard');
+        const codeForm = document.getElementById('codeForm');
+        const joinRoomForm = document.getElementById('joinRoomForm');
+        const roomInfoPreview = document.getElementById('roomInfoPreview');
+        const backToMethodsBtn = document.getElementById('backToMethods');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const invitationsList = document.getElementById('invitationsList');
+        const emptyInvitations = document.getElementById('emptyInvitations');
+        const invitationsGrid = document.getElementById('invitationsGrid');
+        
+        const roomNameInput = document.getElementById('roomName');
+        const roomCodeInput = document.getElementById('roomCode');
+        
+        // Preview elements
+        const previewRoomName = document.getElementById('previewRoomName');
+        const previewCreator = document.getElementById('previewCreator');
+        const previewMembers = document.getElementById('previewMembers');
+        const previewStatus = document.getElementById('previewStatus');
+        
+        // Method selection
+        codeMethodCard.addEventListener('click', function() {
+            // Show code form
+            codeForm.classList.add('active');
+            invitationsList.style.display = 'none';
+            
+            // Update active state
+            codeMethodCard.classList.add('active');
+            inviteMethodCard.classList.remove('active');
+            
+            // Focus on first input
+            setTimeout(() => {
+                roomNameInput.focus();
+            }, 300);
+        });
+        
+        inviteMethodCard.addEventListener('click', function() {
+            // Show invitations list
+            invitationsList.style.display = 'block';
+            codeForm.classList.remove('active');
+            
+            // Update active state
+            inviteMethodCard.classList.add('active');
+            codeMethodCard.classList.remove('active');
+            
+            // Show demo invitations
+            emptyInvitations.style.display = 'none';
+            invitationsGrid.style.display = 'grid';
+        });
+        
+        // Back to methods
+        backToMethodsBtn.addEventListener('click', function() {
+            codeForm.classList.remove('active');
+            invitationsList.style.display = 'none';
+            codeMethodCard.classList.remove('active');
+            inviteMethodCard.classList.remove('active');
+        });
+        
+        // Auto-format room code
+        roomCodeInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            
+            // Check if code is complete
+            if (this.value.length === 6) {
+                validateRoomCode();
+            } else {
+                roomInfoPreview.classList.remove('active');
+            }
+        });
+        
+        // Validate room code (simulated for demo)
+        function validateRoomCode() {
+            const roomName = roomNameInput.value.trim();
+            const roomCode = roomCodeInput.value;
+            
+            if (roomName && roomCode.length === 6) {
+                // Simulate API call with sample data
+                setTimeout(() => {
+                    // Sample room data (in real app, this would come from backend)
+                    const sampleRooms = {
+                        'GOATRIP': {
+                            name: 'Goa Trip 2024',
+                            creator: 'Alex Johnson',
+                            members: 4,
+                            status: 'Active'
+                        },
+                        'OFFICE': {
+                            name: 'Office Team Lunch',
+                            creator: 'Sarah Williams',
+                            members: 8,
+                            status: 'Active'
+                        },
+                        'FAMILY': {
+                            name: 'Family Gathering',
+                            creator: 'Michael Brown',
+                            members: 6,
+                            status: 'Active'
+                        }
+                    };
+                    
+                    const roomData = sampleRooms[roomCode] || {
+                        name: roomName,
+                        creator: 'Unknown',
+                        members: Math.floor(Math.random() * 10) + 1,
+                        status: 'Active'
+                    };
+                    
+                    // Update preview
+                    previewRoomName.textContent = roomData.name;
+                    previewCreator.textContent = roomData.creator;
+                    previewMembers.textContent = `${roomData.members} members`;
+                    previewStatus.textContent = roomData.status;
+                    
+                    // Set status color
+                    if (roomData.status === 'Active') {
+                        previewStatus.style.color = 'var(--success)';
+                    } else {
+                        previewStatus.style.color = 'var(--warning)';
+                    }
+                    
+                    // Show preview
+                    roomInfoPreview.classList.add('active');
+                    
+                }, 500);
+            }
+        }
+        
+        // Form validation
+        joinRoomForm.addEventListener('submit', function(e) {
+            const roomName = roomNameInput.value.trim();
+            const roomCode = roomCodeInput.value.trim();
+            
+            if (!roomName) {
+                e.preventDefault();
+                showError('Please enter the room name');
+                roomNameInput.focus();
+                return;
+            }
+            
+            if (!roomCode || roomCode.length !== 6) {
+                e.preventDefault();
+                showError('Please enter a valid 6-character room code');
+                roomCodeInput.focus();
+                return;
+            }
+            
+            // Show loading state
+            joinRoomBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+            joinRoomBtn.disabled = true;
+        });
+        
+        // Auto-fill demo data for testing
+        function fillDemoData() {
+            roomNameInput.value = 'Goa Trip 2024';
+            roomCodeInput.value = 'GOATRIP';
+            validateRoomCode();
+        }
+        
+        // Quick fill for demo (Ctrl+D)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                fillDemoData();
+            }
+        });
+        
+        // Refresh invitations
+        window.refreshInvitations = function() {
+            const refreshBtn = document.querySelector('[onclick="refreshInvitations()"]');
+            const originalHTML = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            refreshBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalHTML;
+                refreshBtn.disabled = false;
+                
+                // Show success message
+                showFlash('Invitations refreshed successfully', 'success');
+            }, 1500);
+        };
+        
+        // Initialize with code method selected
+        codeMethodCard.click();
+        
+        // Show error function
+        function showError(message) {
+            // Remove existing error
+            const existingError = document.querySelector('.flash-error');
+            if (existingError) existingError.remove();
+            
+            // Create error element
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'flash-message flash-error mb-4';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                ${message}
+                <button class="flash-close">&times;</button>
+            `;
+            
+            // Insert after page header
+            const pageHeader = document.querySelector('.page-header');
+            pageHeader.parentNode.insertBefore(errorDiv, pageHeader.nextSibling);
+            
+            // Add close functionality
+            errorDiv.querySelector('.flash-close').addEventListener('click', function() {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => errorDiv.remove(), 300);
+            });
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.style.opacity = '0';
+                    errorDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => errorDiv.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Show flash message
+        function showFlash(message, type = 'info') {
+            const flashDiv = document.createElement('div');
+            flashDiv.className = `flash-message flash-${type} mb-4`;
+            flashDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+                <button class="flash-close">&times;</button>
+            `;
+            
+            const pageHeader = document.querySelector('.page-header');
+            pageHeader.parentNode.insertBefore(flashDiv, pageHeader.nextSibling);
+            
+            flashDiv.querySelector('.flash-close').addEventListener('click', function() {
+                flashDiv.style.opacity = '0';
+                flashDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => flashDiv.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.style.opacity = '0';
+                    flashDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => flashDiv.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Add animation to method cards
+        const methodCards = document.querySelectorAll('.method-card');
+        methodCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.2}s`;
+            card.style.animation = 'fadeInUp 0.6s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 200));
+        });
+    });
+</script>
+{% endblock %}

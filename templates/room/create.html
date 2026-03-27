@@ -1,0 +1,685 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Room - Expensio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Create Room Specific Styles */
+    .create-room-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Form Styles */
+    .create-form {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+    }
+    
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+    }
+    
+    .section-description {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Input Groups */
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    .input-group .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        color: var(--text-light);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .input-group .form-control:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .input-group textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    /* Character Counter */
+    .char-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+    
+    /* Budget Input */
+    .budget-input {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .budget-input .currency {
+        padding: 12px 16px;
+        background: rgba(138, 43, 226, 0.2);
+        border: 1px solid var(--card-border);
+        border-radius: 12px 0 0 12px;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+    
+    .budget-input .form-control {
+        border-radius: 0 12px 12px 0;
+        flex: 1;
+    }
+    
+    /* Room Code Generator */
+    .code-generator {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .code-display {
+        flex: 1;
+        font-family: monospace;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+    
+    .generate-btn {
+        background: var(--secondary-gradient);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .generate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4);
+    }
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-actions .btn {
+        min-width: 150px;
+    }
+    
+    /* Room Preview */
+    .room-preview {
+        background: rgba(138, 43, 226, 0.1);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 3rem;
+        border: 1px solid var(--card-border);
+    }
+    
+    .preview-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .preview-header h3 {
+        color: var(--accent-blue);
+        margin: 0;
+    }
+    
+    .preview-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .preview-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    
+    .preview-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+    
+    .preview-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+    
+    /* Tips Section */
+    .tips-section {
+        background: rgba(0, 212, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .tips-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .tips-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .tips-list li {
+        padding: 0.5rem 0;
+        color: var(--text-muted);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .tips-list li:before {
+        content: '✓';
+        color: var(--accent-blue);
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .create-room-container {
+            padding: 0 1rem;
+        }
+        
+        .create-form {
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-room-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Create New Room</h1>
+        <p>Start tracking expenses with friends, family, or colleagues. Create a secure room and invite members to join.</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }} mb-4">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="flash-close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Create Form -->
+    <form method="POST" action="{{ url_for('create_room') }}" class="create-form" id="createRoomForm">
+        <!-- Room Details Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <h2 class="section-title">Room Details</h2>
+            </div>
+            
+            <p class="section-description">
+                Give your room a name and description that helps members understand its purpose.
+            </p>
+            
+            <div class="form-grid">
+                <!-- Room Name -->
+                <div class="input-group">
+                    <label for="roomName">
+                        <i class="fas fa-hashtag"></i> Room Name *
+                    </label>
+                    <input type="text" 
+                           id="roomName" 
+                           name="name" 
+                           class="form-control" 
+                           placeholder="e.g., Goa Trip 2024, Office Team Lunch, Family Gathering"
+                           required
+                           maxlength="100"
+                           autofocus>
+                    <div class="char-counter">
+                        <span id="nameCounter">0</span>/100
+                    </div>
+                </div>
+                
+                <!-- Room Code -->
+                <div class="input-group">
+                    <label for="roomCode">
+                        <i class="fas fa-key"></i> Room Code *
+                    </label>
+                    <div class="code-generator">
+                        <input type="text" 
+                               id="roomCode" 
+                               name="room_code" 
+                               class="form-control code-display" 
+                               placeholder="Generate a unique code"
+                               required
+                               readonly>
+                        <button type="button" class="generate-btn" id="generateCode">
+                            <i class="fas fa-sync-alt"></i>
+                            Generate
+                        </button>
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">
+                        Share this code with friends to join the room
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Room Description -->
+            <div class="input-group mt-3">
+                <label for="roomDescription">
+                    <i class="fas fa-align-left"></i> Description (Optional)
+                </label>
+                <textarea id="roomDescription" 
+                          name="description" 
+                          class="form-control" 
+                          placeholder="Describe the purpose of this room. What expenses will be tracked here?"
+                          maxlength="500"></textarea>
+                <div class="char-counter">
+                    <span id="descCounter">0</span>/500
+                </div>
+            </div>
+        </div>
+        
+        <!-- Budget Settings Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h2 class="section-title">Budget Settings</h2>
+            </div>
+            
+            <p class="section-description">
+                Set an optional budget limit to help track spending against your planned amount.
+            </p>
+            
+            <div class="input-group">
+                <label for="roomBudget">
+                    <i class="fas fa-chart-line"></i> Total Budget (Optional)
+                </label>
+                <div class="budget-input">
+                    <span class="currency">₹</span>
+                    <input type="number" 
+                           id="roomBudget" 
+                           name="budget" 
+                           class="form-control" 
+                           placeholder="0.00"
+                           min="0"
+                           step="0.01"
+                           value="0">
+                </div>
+                <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">
+                    Leave as 0 if you don't want to set a budget limit
+                </small>
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="tips-section">
+            <div class="tips-header">
+                <i class="fas fa-lightbulb"></i>
+                <h3 style="margin: 0; font-size: 1.1rem;">Tips for a Great Room</h3>
+            </div>
+            <ul class="tips-list">
+                <li>Choose a descriptive name that everyone will recognize</li>
+                <li>Set a budget to avoid overspending</li>
+                <li>Use the room code to easily invite friends</li>
+                <li>Add a description to clarify the room's purpose</li>
+                <li>Remember to track expenses regularly</li>
+            </ul>
+        </div>
+        
+        <!-- Room Preview -->
+        <div class="room-preview" id="roomPreview">
+            <div class="preview-header">
+                <i class="fas fa-eye"></i>
+                <h3>Room Preview</h3>
+            </div>
+            <div class="preview-content">
+                <div class="preview-item">
+                    <div class="preview-label">Room Name</div>
+                    <div class="preview-value" id="previewName">Not set</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Room Code</div>
+                    <div class="preview-value" id="previewCode">------</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Budget</div>
+                    <div class="preview-value" id="previewBudget">₹0.00</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Members</div>
+                    <div class="preview-value">1 (You)</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <button type="submit" class="btn btn-primary" id="createRoomBtn">
+                <i class="fas fa-plus-circle"></i> Create Room
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const roomNameInput = document.getElementById('roomName');
+        const roomCodeInput = document.getElementById('roomCode');
+        const roomDescInput = document.getElementById('roomDescription');
+        const roomBudgetInput = document.getElementById('roomBudget');
+        const generateCodeBtn = document.getElementById('generateCode');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const createRoomForm = document.getElementById('createRoomForm');
+        
+        // Preview elements
+        const previewName = document.getElementById('previewName');
+        const previewCode = document.getElementById('previewCode');
+        const previewBudget = document.getElementById('previewBudget');
+        
+        // Character counters
+        const nameCounter = document.getElementById('nameCounter');
+        const descCounter = document.getElementById('descCounter');
+        
+        // Generate random room code
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // Initialize with a random code
+        let initialCode = generateRoomCode();
+        roomCodeInput.value = initialCode;
+        previewCode.textContent = initialCode;
+        
+        // Generate new code
+        generateCodeBtn.addEventListener('click', function() {
+            const newCode = generateRoomCode();
+            roomCodeInput.value = newCode;
+            previewCode.textContent = newCode;
+            
+            // Animate the code change
+            previewCode.style.transform = 'scale(1.1)';
+            previewCode.style.color = 'var(--accent-blue)';
+            setTimeout(() => {
+                previewCode.style.transform = 'scale(1)';
+                previewCode.style.color = 'var(--text-light)';
+            }, 300);
+        });
+        
+        // Update character counters
+        function updateCharacterCounters() {
+            nameCounter.textContent = roomNameInput.value.length;
+            descCounter.textContent = roomDescInput.value.length;
+        }
+        
+        // Update preview in real-time
+        function updatePreview() {
+            // Update name
+            if (roomNameInput.value.trim()) {
+                previewName.textContent = roomNameInput.value;
+                previewName.style.color = 'var(--text-light)';
+            } else {
+                previewName.textContent = 'Not set';
+                previewName.style.color = 'var(--text-muted)';
+            }
+            
+            // Update budget
+            const budget = parseFloat(roomBudgetInput.value) || 0;
+            previewBudget.textContent = `₹${budget.toFixed(2)}`;
+            
+            // Change color based on budget amount
+            if (budget > 0) {
+                previewBudget.style.color = 'var(--success)';
+            } else {
+                previewBudget.style.color = 'var(--text-light)';
+            }
+        }
+        
+        // Event listeners for real-time updates
+        roomNameInput.addEventListener('input', function() {
+            updateCharacterCounters();
+            updatePreview();
+        });
+        
+        roomDescInput.addEventListener('input', updateCharacterCounters);
+        roomBudgetInput.addEventListener('input', updatePreview);
+        
+        // Form validation
+        createRoomForm.addEventListener('submit', function(e) {
+            const roomName = roomNameInput.value.trim();
+            const roomCode = roomCodeInput.value.trim();
+            
+            if (!roomName) {
+                e.preventDefault();
+                showError('Please enter a room name');
+                roomNameInput.focus();
+                return;
+            }
+            
+            if (!roomCode) {
+                e.preventDefault();
+                showError('Please generate a room code');
+                roomCodeInput.focus();
+                return;
+            }
+            
+            // Show loading state
+            createRoomBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Room...';
+            createRoomBtn.disabled = true;
+        });
+        
+        // Format budget input
+        roomBudgetInput.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value) && value >= 0) {
+                this.value = value.toFixed(2);
+            } else {
+                this.value = '0.00';
+            }
+            updatePreview();
+        });
+        
+        // Initialize
+        updateCharacterCounters();
+        updatePreview();
+        
+        // Add some visual effects
+        const formSections = document.querySelectorAll('.form-section');
+        formSections.forEach((section, index) => {
+            section.style.animationDelay = `${index * 0.1}s`;
+            section.style.animation = 'fadeInUp 0.5s ease forwards';
+            section.style.opacity = '0';
+            
+            setTimeout(() => {
+                section.style.opacity = '1';
+            }, 300 + (index * 100));
+        });
+        
+        // Show error function
+        function showError(message) {
+            // Remove existing error
+            const existingError = document.querySelector('.flash-error');
+            if (existingError) existingError.remove();
+            
+            // Create error element
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'flash-message flash-error mb-4';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                ${message}
+                <button class="flash-close">&times;</button>
+            `;
+            
+            // Insert after page header
+            const pageHeader = document.querySelector('.page-header');
+            pageHeader.parentNode.insertBefore(errorDiv, pageHeader.nextSibling);
+            
+            // Add close functionality
+            errorDiv.querySelector('.flash-close').addEventListener('click', function() {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => errorDiv.remove(), 300);
+            });
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.style.opacity = '0';
+                    errorDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => errorDiv.remove(), 300);
+                }
+            }, 5000);
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>
+{% endblock %}

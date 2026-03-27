@@ -1,0 +1,1210 @@
+{% extends "layout.html" %}
+
+{% block title %}Charts & Insights - Expensio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Charts Page Specific Styles */
+    .charts-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Time Range Selector */
+    .time-selector {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .time-btn {
+        padding: 10px 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .time-btn:hover {
+        background: rgba(138, 43, 226, 0.1);
+        color: var(--accent-purple);
+    }
+    
+    .time-btn.active {
+        background: var(--secondary-gradient);
+        color: white;
+        border-color: transparent;
+    }
+    
+    /* Charts Grid */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Chart Card */
+    .chart-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+    }
+    
+    .chart-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(138, 43, 226, 0.2);
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .chart-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .chart-action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.07);
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+    
+    .chart-action-btn:hover {
+        background: var(--accent-purple);
+        color: white;
+    }
+    
+    /* Chart Container */
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        margin: 0 auto;
+    }
+    
+    /* Insights Grid */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .insight-card {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid var(--card-border);
+        transition: var(--transition);
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--accent-purple);
+    }
+    
+    .insight-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .insight-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .insight-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-light);
+        margin: 0;
+    }
+    
+    .insight-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .insight-description {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .insight-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .trend-up {
+        color: var(--success);
+    }
+    
+    .trend-down {
+        color: var(--danger);
+    }
+    
+    /* Category Breakdown */
+    .category-breakdown {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid var(--card-border);
+    }
+    
+    .breakdown-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .breakdown-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--accent-blue);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .category-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        transition: var(--transition);
+    }
+    
+    .category-item:hover {
+        background: rgba(138, 43, 226, 0.1);
+        transform: translateX(5px);
+    }
+    
+    .category-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    
+    .category-info {
+        flex: 1;
+    }
+    
+    .category-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: var(--text-light);
+    }
+    
+    .category-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .progress-bar {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1s ease;
+    }
+    
+    /* Comparison Section */
+    .comparison-section {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid var(--card-border);
+    }
+    
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .comparison-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+    }
+    
+    .comparison-period {
+        font-size: 1rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+    
+    .comparison-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--accent-blue);
+    }
+    
+    .comparison-change {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .change-positive {
+        background: rgba(0, 255, 157, 0.1);
+        color: var(--success);
+    }
+    
+    .change-negative {
+        background: rgba(255, 107, 139, 0.1);
+        color: var(--danger);
+    }
+    
+    /* Export Section */
+    .export-section {
+        background: rgba(138, 43, 226, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(138, 43, 226, 0.2);
+        text-align: center;
+    }
+    
+    .export-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .export-header h2 {
+        color: var(--accent-purple);
+        margin-bottom: 0.5rem;
+    }
+    
+    .export-header p {
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .export-options {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    /* No Data State */
+    .no-data-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+    
+    .no-data-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .no-data-state h3 {
+        margin-bottom: 1rem;
+        color: var(--text-light);
+    }
+    
+    /* Chart Colors */
+    .chart-colors {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .color-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .color-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .charts-container {
+            padding: 0 1rem;
+        }
+        
+        .charts-grid {
+            gap: 1.5rem;
+        }
+        
+        .chart-card {
+            padding: 1.5rem;
+        }
+        
+        .time-selector {
+            gap: 0.5rem;
+        }
+        
+        .time-btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .chart-wrapper {
+            height: 250px;
+        }
+        
+        .insights-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="charts-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Expense Insights & Analytics</h1>
+        <p>Visualize your spending patterns, track trends, and gain valuable insights into your expenses.</p>
+    </div>
+    
+    <!-- Time Range Selector -->
+    <div class="time-selector">
+        <button class="time-btn active" data-range="week">
+            <i class="fas fa-calendar-week"></i> This Week
+        </button>
+        <button class="time-btn" data-range="month">
+            <i class="fas fa-calendar-alt"></i> This Month
+        </button>
+        <button class="time-btn" data-range="quarter">
+            <i class="fas fa-chart-line"></i> Last 3 Months
+        </button>
+        <button class="time-btn" data-range="year">
+            <i class="fas fa-calendar-year"></i> This Year
+        </button>
+        <button class="time-btn" data-range="all">
+            <i class="fas fa-infinity"></i> All Time
+        </button>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }} mb-4">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="flash-close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% if categories or monthly_data %}
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <!-- Pie Chart Card -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">
+                    <i class="fas fa-chart-pie"></i> Expense Distribution
+                </h2>
+                <div class="chart-actions">
+                    <button class="chart-action-btn" title="Download as PNG" onclick="downloadChart('pieChart', 'expense-distribution.png')">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="chart-action-btn" title="Refresh Data" onclick="refreshChart('pieChart')">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chart-wrapper">
+                <canvas id="pieChart"></canvas>
+            </div>
+            
+            <div class="chart-colors" id="pieChartColors">
+                <!-- Colors will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Bar Chart Card -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">
+                    <i class="fas fa-chart-bar"></i> Monthly Spending
+                </h2>
+                <div class="chart-actions">
+                    <button class="chart-action-btn" title="Download as PNG" onclick="downloadChart('barChart', 'monthly-spending.png')">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="chart-action-btn" title="Refresh Data" onclick="refreshChart('barChart')">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chart-wrapper">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Insights -->
+    <div class="insights-grid">
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h3 class="insight-title">Total Spending</h3>
+            </div>
+            <div class="insight-value" id="totalSpending">₹0.00</div>
+            <p class="insight-description">Total amount spent in selected period</p>
+            <div class="insight-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>12% from last period</span>
+            </div>
+        </div>
+        
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h3 class="insight-title">Top Category</h3>
+            </div>
+            <div class="insight-value" id="topCategory">Food</div>
+            <p class="insight-description">Your most frequent expense category</p>
+            <div class="insight-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span>₹2,450 this month</span>
+            </div>
+        </div>
+        
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <h3 class="insight-title">Daily Average</h3>
+            </div>
+            <div class="insight-value" id="dailyAverage">₹0.00</div>
+            <p class="insight-description">Average daily spending</p>
+            <div class="insight-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>8% lower than last week</span>
+            </div>
+        </div>
+        
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3 class="insight-title">Budget Status</h3>
+            </div>
+            <div class="insight-value" id="budgetStatus">75%</div>
+            <p class="insight-description">Monthly budget utilization</p>
+            <div class="insight-trend">
+                <i class="fas fa-info-circle"></i>
+                <span>₹2,500 remaining</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Breakdown -->
+    <div class="category-breakdown">
+        <div class="breakdown-header">
+            <h2 class="breakdown-title">
+                <i class="fas fa-list-ol"></i> Category Breakdown
+            </h2>
+            <div class="time-btn">
+                <i class="fas fa-filter"></i> Filter
+            </div>
+        </div>
+        
+        <div class="category-list" id="categoryList">
+            <!-- Categories will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Monthly Comparison -->
+    <div class="comparison-section">
+        <div class="breakdown-header">
+            <h2 class="breakdown-title">
+                <i class="fas fa-balance-scale"></i> Monthly Comparison
+            </h2>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <div class="comparison-period">Current Month</div>
+                <div class="comparison-amount">₹12,450</div>
+                <div class="comparison-change change-positive">+8%</div>
+            </div>
+            
+            <div class="comparison-card">
+                <div class="comparison-period">Last Month</div>
+                <div class="comparison-amount">₹11,520</div>
+                <div class="comparison-change change-negative">-5%</div>
+            </div>
+            
+            <div class="comparison-card">
+                <div class="comparison-period">3-Month Average</div>
+                <div class="comparison-amount">₹10,890</div>
+                <div class="comparison-change change-positive">+12%</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Section -->
+    <div class="export-section">
+        <div class="export-header">
+            <h2>Export Your Insights</h2>
+            <p>Download your expense data and charts for further analysis or record keeping.</p>
+        </div>
+        <div class="export-options">
+            <a href="{{ url_for('export_personal') }}" class="btn btn-primary">
+                <i class="fas fa-file-csv"></i> Export as CSV
+            </a>
+            <button class="btn btn-outline" onclick="exportAllCharts()">
+                <i class="fas fa-file-image"></i> Export Charts as PNG
+            </button>
+            <button class="btn btn-outline" onclick="generateReport()">
+                <i class="fas fa-file-pdf"></i> Generate PDF Report
+            </button>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- No Data State -->
+    <div class="no-data-state">
+        <i class="fas fa-chart-line"></i>
+        <h3>No Data Available Yet</h3>
+        <p>Start adding expenses to see beautiful charts and insights about your spending patterns.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Add Your First Expense
+            </a>
+            <a href="{{ url_for('create_room') }}" class="btn btn-outline">
+                <i class="fas fa-users"></i> Create a Room
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Chart.js Configuration
+    Chart.defaults.color = '#E6E6FA';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+    
+    // Define chart colors
+    const chartColors = [
+        '#8A2BE2', // Purple
+        '#00D4FF', // Blue
+        '#00FF9D', // Green
+        '#FFB74D', // Orange
+        '#FF6B8B', // Pink
+        '#667EEA', // Light Purple
+        '#764BA2', // Dark Purple
+        '#4FACFE', // Light Blue
+        '#00F2FE', // Cyan
+        '#F093FB', // Light Pink
+        '#F5576C'  // Red
+    ];
+    
+    // Initialize charts when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Time range selector
+        const timeButtons = document.querySelectorAll('.time-btn');
+        timeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                timeButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const range = this.getAttribute('data-range');
+                updateCharts(range);
+                
+                // Add animation
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+        
+        // Initialize charts if data exists
+        {% if categories or monthly_data %}
+        initializeCharts();
+        updateCategoryList();
+        updateInsights();
+        {% endif %}
+        
+        // Add visual effects to cards
+        const cards = document.querySelectorAll('.chart-card, .insight-card, .comparison-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.5s ease forwards';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 300 + (index * 100));
+        });
+        
+        // Initialize tooltips
+        initTooltips();
+    });
+    
+    // Initialize Charts
+    function initializeCharts() {
+        // Prepare data for Pie Chart
+        const pieData = preparePieChartData();
+        createPieChart(pieData);
+        
+        // Prepare data for Bar Chart
+        const barData = prepareBarChartData();
+        createBarChart(barData);
+    }
+    
+    // Prepare Pie Chart Data
+    function preparePieChartData() {
+        // Sample data - in real app, this would come from backend
+        const categories = {
+            'Food': 4500,
+            'Travel': 3200,
+            'Shopping': 2800,
+            'Entertainment': 1500,
+            'Bills': 1200,
+            'Other': 800
+        };
+        
+        return {
+            labels: Object.keys(categories),
+            data: Object.values(categories),
+            colors: chartColors.slice(0, Object.keys(categories).length)
+        };
+    }
+    
+    // Create Pie Chart
+    function createPieChart(data) {
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        
+        // Clear previous chart if exists
+        if (window.pieChartInstance) {
+            window.pieChartInstance.destroy();
+        }
+        
+        window.pieChartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: data.colors,
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 2,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ₹${value.toLocaleString()} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+        
+        // Update color legend
+        updateColorLegend('pieChartColors', data.labels, data.colors);
+    }
+    
+    // Prepare Bar Chart Data
+    function prepareBarChartData() {
+        // Sample data - in real app, this would come from backend
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthlyData = [4500, 5200, 4800, 6100, 5800, 7200, 6800, 7500, 6200, 5900, 7100, 8000];
+        
+        return {
+            labels: months.slice(0, 6), // Last 6 months
+            data: monthlyData.slice(0, 6),
+            color: chartColors[1]
+        };
+    }
+    
+    // Create Bar Chart
+    function createBarChart(data) {
+        const ctx = document.getElementById('barChart').getContext('2d');
+        
+        // Clear previous chart if exists
+        if (window.barChartInstance) {
+            window.barChartInstance.destroy();
+        }
+        
+        window.barChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Monthly Expenses',
+                    data: data.data,
+                    backgroundColor: data.color + '80', // 50% opacity
+                    borderColor: data.color,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    hoverBackgroundColor: data.color
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `₹${context.parsed.y.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+    
+    // Update charts based on time range
+    function updateCharts(range) {
+        // Show loading state
+        const chartCards = document.querySelectorAll('.chart-card');
+        chartCards.forEach(card => {
+            card.style.opacity = '0.7';
+        });
+        
+        // Simulate API call
+        setTimeout(() => {
+            // Update pie chart data based on range
+            const pieData = preparePieChartData();
+            updatePieChart(pieData);
+            
+            // Update bar chart data based on range
+            const barData = prepareBarChartData();
+            updateBarChart(barData);
+            
+            // Update insights
+            updateInsights();
+            
+            // Update category list
+            updateCategoryList();
+            
+            // Restore opacity
+            chartCards.forEach(card => {
+                card.style.opacity = '1';
+            });
+            
+            // Show success message
+            showFlash(`Charts updated for ${range} period`, 'success');
+        }, 500);
+    }
+    
+    // Update Pie Chart
+    function updatePieChart(data) {
+        if (window.pieChartInstance) {
+            window.pieChartInstance.data.labels = data.labels;
+            window.pieChartInstance.data.datasets[0].data = data.data;
+            window.pieChartInstance.data.datasets[0].backgroundColor = data.colors;
+            window.pieChartInstance.update();
+            
+            // Update color legend
+            updateColorLegend('pieChartColors', data.labels, data.colors);
+        }
+    }
+    
+    // Update Bar Chart
+    function updateBarChart(data) {
+        if (window.barChartInstance) {
+            window.barChartInstance.data.labels = data.labels;
+            window.barChartInstance.data.datasets[0].data = data.data;
+            window.barChartInstance.update();
+        }
+    }
+    
+    // Update Category List
+    function updateCategoryList() {
+        const categoryList = document.getElementById('categoryList');
+        const pieData = preparePieChartData();
+        const total = pieData.data.reduce((a, b) => a + b, 0);
+        
+        categoryList.innerHTML = '';
+        
+        pieData.labels.forEach((label, index) => {
+            const value = pieData.data[index];
+            const percentage = Math.round((value / total) * 100);
+            const color = pieData.colors[index];
+            
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item';
+            categoryItem.innerHTML = `
+                <div class="category-color" style="background: ${color};"></div>
+                <div class="category-info">
+                    <div class="category-name">${label}</div>
+                    <div class="category-stats">
+                        <span>₹${value.toLocaleString()}</span>
+                        <span>${percentage}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%; background: ${color};"></div>
+                    </div>
+                </div>
+            `;
+            
+            categoryList.appendChild(categoryItem);
+            
+            // Animate progress bars
+            setTimeout(() => {
+                const fill = categoryItem.querySelector('.progress-fill');
+                fill.style.width = `${percentage}%`;
+            }, 100 * index);
+        });
+    }
+    
+    // Update Insights
+    function updateInsights() {
+        const pieData = preparePieChartData();
+        const barData = prepareBarChartData();
+        
+        // Calculate total spending
+        const totalSpending = pieData.data.reduce((a, b) => a + b, 0);
+        document.getElementById('totalSpending').textContent = `₹${totalSpending.toLocaleString()}`;
+        
+        // Find top category
+        const maxValue = Math.max(...pieData.data);
+        const topCategoryIndex = pieData.data.indexOf(maxValue);
+        document.getElementById('topCategory').textContent = pieData.labels[topCategoryIndex];
+        
+        // Calculate daily average (assuming 30 days)
+        const dailyAverage = totalSpending / 30;
+        document.getElementById('dailyAverage').textContent = `₹${dailyAverage.toFixed(2)}`;
+        
+        // Update budget status
+        const budgetStatus = Math.min(Math.round((totalSpending / 10000) * 100), 100);
+        document.getElementById('budgetStatus').textContent = `${budgetStatus}%`;
+    }
+    
+    // Update Color Legend
+    function updateColorLegend(elementId, labels, colors) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = '';
+        
+        labels.forEach((label, index) => {
+            const colorItem = document.createElement('div');
+            colorItem.className = 'color-item';
+            colorItem.innerHTML = `
+                <div class="color-swatch" style="background: ${colors[index]};"></div>
+                <span>${label}</span>
+            `;
+            element.appendChild(colorItem);
+        });
+    }
+    
+    // Download Chart as PNG
+    function downloadChart(chartId, filename) {
+        const chart = document.getElementById(chartId);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = chart.toDataURL('image/png');
+        link.click();
+        
+        showFlash(`Chart downloaded as ${filename}`, 'success');
+    }
+    
+    // Refresh Chart
+    function refreshChart(chartId) {
+        const chartElement = document.getElementById(chartId);
+        chartElement.style.opacity = '0.5';
+        
+        setTimeout(() => {
+            if (chartId === 'pieChart') {
+                const pieData = preparePieChartData();
+                updatePieChart(pieData);
+            } else {
+                const barData = prepareBarChartData();
+                updateBarChart(barData);
+            }
+            
+            chartElement.style.opacity = '1';
+            showFlash('Chart data refreshed', 'info');
+        }, 300);
+    }
+    
+    // Export All Charts
+    function exportAllCharts() {
+        // In a real implementation, this would create a ZIP file with all charts
+        showFlash('Preparing chart package for download...', 'info');
+        
+        setTimeout(() => {
+            // Simulate download
+            showFlash('Charts exported successfully!', 'success');
+        }, 1500);
+    }
+    
+    // Generate PDF Report
+    function generateReport() {
+        showFlash('Generating comprehensive PDF report...', 'info');
+        
+        setTimeout(() => {
+            // Simulate report generation
+            const link = document.createElement('a');
+            link.download = 'expensio-report.pdf';
+            link.href = '#';
+            link.click();
+            
+            showFlash('PDF report downloaded successfully!', 'success');
+        }, 2000);
+    }
+    
+    // Initialize Tooltips
+    function initTooltips() {
+        const tooltipTriggers = document.querySelectorAll('[title]');
+        tooltipTriggers.forEach(trigger => {
+            trigger.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = this.getAttribute('title');
+                tooltip.style.position = 'absolute';
+                tooltip.style.background = 'var(--primary-dark)';
+                tooltip.style.color = 'var(--text-light)';
+                tooltip.style.padding = '8px 12px';
+                tooltip.style.borderRadius = '6px';
+                tooltip.style.fontSize = '0.9rem';
+                tooltip.style.zIndex = '10000';
+                tooltip.style.border = '1px solid var(--card-border)';
+                tooltip.style.boxShadow = 'var(--shadow)';
+                tooltip.style.maxWidth = '200px';
+                tooltip.style.whiteSpace = 'nowrap';
+                
+                document.body.appendChild(tooltip);
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                
+                this._tooltip = tooltip;
+            });
+            
+            trigger.addEventListener('mouseleave', function() {
+                if (this._tooltip) {
+                    this._tooltip.remove();
+                    delete this._tooltip;
+                }
+            });
+        });
+    }
+    
+    // Show Flash Message
+    function showFlash(message, type = 'info') {
+        // Remove existing flash
+        const existingFlash = document.querySelector('.flash-message');
+        if (existingFlash) existingFlash.remove();
+        
+        const flashDiv = document.createElement('div');
+        flashDiv.className = `flash-message flash-${type} mb-4`;
+        flashDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            ${message}
+            <button class="flash-close">&times;</button>
+        `;
+        
+        const pageHeader = document.querySelector('.page-header');
+        pageHeader.parentNode.insertBefore(flashDiv, pageHeader.nextSibling);
+        
+        flashDiv.querySelector('.flash-close').addEventListener('click', function() {
+            flashDiv.style.opacity = '0';
+            flashDiv.style.transform = 'translateY(-10px)';
+            setTimeout(() => flashDiv.remove(), 300);
+        });
+        
+        setTimeout(() => {
+            if (flashDiv.parentElement) {
+                flashDiv.style.opacity = '0';
+                flashDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => flashDiv.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    // Add animation to time selector buttons
+    const timeButtons = document.querySelectorAll('.time-btn');
+    timeButtons.forEach((btn, index) => {
+        btn.style.animationDelay = `${index * 0.1}s`;
+        btn.style.animation = 'fadeInUp 0.5s ease forwards';
+        btn.style.opacity = '0';
+        
+        setTimeout(() => {
+            btn.style.opacity = '1';
+        }, 300 + (index * 100));
+    });
+</script>
+{% endblock %}
