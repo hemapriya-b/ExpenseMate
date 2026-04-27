@@ -261,7 +261,7 @@
     
     .tech-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 1.5rem;
         margin-top: 3rem;
     }
@@ -273,6 +273,7 @@
         border: 1px solid var(--card-border);
         transition: var(--transition);
         text-align: center;
+        min-width: 0;
     }
     
     .tech-card:hover {
@@ -291,11 +292,15 @@
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: var(--text-light);
+        line-height: 1.3;
+        overflow-wrap: anywhere;
     }
     
     .tech-purpose {
         color: var(--text-muted);
         font-size: 0.9rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
     }
     
     /* Team Section */

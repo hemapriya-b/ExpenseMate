@@ -47,6 +47,7 @@
         border: 1px solid var(--card-border);
         transition: var(--transition);
         text-align: center;
+        min-width: 0;
     }
     
     .stat-card:hover {
@@ -68,16 +69,22 @@
     }
     
     .stat-value {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         color: var(--accent-blue);
+        line-height: 1.15;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     
     .stat-label {
         color: var(--text-muted);
         font-size: 1rem;
         font-weight: 500;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
     }
     
     .stat-trend {
@@ -87,6 +94,8 @@
         gap: 0.5rem;
         margin-top: 1rem;
         font-size: 0.9rem;
+        flex-wrap: wrap;
+        line-height: 1.4;
     }
     
     .trend-up {
@@ -192,18 +201,24 @@
         padding: 1.5rem;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
+        min-width: 0;
     }
     
     .detail-label {
         font-size: 0.9rem;
         color: var(--text-muted);
         margin-bottom: 0.5rem;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
     }
     
     .detail-value {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         font-weight: 600;
         color: var(--text-light);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     
     /* Expenses Table */
@@ -413,7 +428,7 @@
     
     .summary-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
         gap: 1.5rem;
         margin-top: 1.5rem;
     }
@@ -423,18 +438,24 @@
         padding: 1.5rem;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
+        min-width: 0;
     }
     
     .summary-value {
-        font-size: 1.8rem;
+        font-size: 1.45rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         color: var(--accent-blue);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     
     .summary-label {
         font-size: 0.9rem;
         color: var(--text-muted);
+        line-height: 1.4;
+        overflow-wrap: anywhere;
     }
     
     /* Export Section */
@@ -610,7 +631,7 @@
                     <i class="fas fa-edit"></i> Edit
                 </button>
                 <button class="btn btn-outline btn-sm" onclick="resetBudget()">
-                    <i class="fas fa-redo"></i> Reset
+                    <i class="fas fa-redo"></i> Clear
                 </button>
             </div>
         </div>
@@ -639,8 +660,8 @@
                 <div class="detail-value" style="color: var(--success);">&#8377;{{ "%.2f"|format((budget_limit - month_total) if budget_limit > 0 else 0) }}</div>
             </div>
             <div class="budget-detail">
-                <div class="detail-label">Days Left</div>
-                <div class="detail-value">{{ 100 - budget_progress_pct }}%</div>
+                <div class="detail-label">Budget Left</div>
+                <div class="detail-value">{{ budget_remaining_pct }}%</div>
             </div>
         </div>
     </div>
@@ -722,7 +743,13 @@
                 </thead>
                 <tbody>
                     {% for expense in expenses %}
-                    <tr class="table-row" data-category="{{ expense.category|lower }}">
+                    <tr class="table-row"
+                        data-expense-id="{{ expense.id }}"
+                        data-description="{{ expense.description|e }}"
+                        data-amount="{{ '%.2f'|format(expense.amount) }}"
+                        data-category="{{ expense.category|lower }}"
+                        data-category-value="{{ expense.category }}"
+                        data-date="{{ expense.date.strftime('%Y-%m-%d') }}">
                         <td>
                             <div class="expense-description">
                                 <div class="expense-icon icon-{{ expense.category|lower }}">
@@ -759,10 +786,10 @@
                         </td>
                         <td>
                             <div class="expense-actions">
-                                <button class="action-btn" title="Edit" onclick="editExpense({{ expense.id }})">
+                                <button class="action-btn" type="button" title="Edit" onclick="editExpense({{ expense.id }})">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="action-btn" title="Delete" onclick="deleteExpense({{ expense.id }})">
+                                <button class="action-btn" type="button" title="Delete" onclick="deleteExpense({{ expense.id }})">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -882,10 +909,68 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Expense Modal -->
+<div id="editExpenseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Personal Expense</h3>
+            <button class="modal-close" type="button" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editExpenseForm" method="POST" action="">
+                <div class="input-group mb-3">
+                    <label for="editDescription"><i class="fas fa-align-left"></i> Description *</label>
+                    <input type="text" id="editDescription" name="description" class="form-control" required>
+                </div>
+                
+                <div class="input-group mb-3">
+                    <label for="editAmount"><i class="fas fa-rupee-sign"></i> Amount *</label>
+                    <div class="amount-input">
+                        <span class="currency">₹</span>
+                        <input type="number" id="editAmount" name="amount" class="form-control" 
+                               min="0.01" step="0.01" required>
+                    </div>
+                </div>
+                
+                <div class="input-group mb-3">
+                    <label for="editCategory"><i class="fas fa-tags"></i> Category *</label>
+                    <select id="editCategory" name="category" class="form-control" required>
+                        <option value="Food">Food & Dining</option>
+                        <option value="Travel">Travel & Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Bills">Bills & Utilities</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="input-group mb-3">
+                    <label for="editDate"><i class="fas fa-calendar"></i> Date *</label>
+                    <input type="date" id="editDate" name="date" class="form-control" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    const editExpenseUrlTemplate = "{{ url_for('edit_personal_expense', expense_id=0) }}";
+    const deleteExpenseUrlTemplate = "{{ url_for('delete_personal_expense', expense_id=0) }}";
+
+    function expenseUrl(template, expenseId) {
+        return template.replace('/0/', `/${expenseId}/`);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize budget progress animation
         const progressBar = document.getElementById('budgetProgress');
@@ -981,35 +1066,60 @@
         showFlash(`Showing data for ${periods[period]}`, 'info');
     }
     
+    const currentBudgetLimit = {{ "%.2f"|format(budget_limit)|tojson }};
+
+    function saveBudget(amount) {
+        const formData = new FormData();
+        formData.append('amount', amount);
+
+        return fetch('{{ url_for("update_personal_budget") }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        }).then(async response => {
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Could not update budget');
+            }
+            return data;
+        });
+    }
+
     // Edit budget
     function editBudget() {
-        const newBudget = prompt('Enter new monthly budget amount:', '10000');
-        if (newBudget && !isNaN(newBudget) && parseFloat(newBudget) > 0) {
-            const amount = parseFloat(newBudget).toFixed(2);
-            showFlash(`Budget updated to ₹${amount}`, 'success');
-            
-            // Update UI
-            document.querySelector('.budget-detail .detail-value').textContent = `₹${amount}`;
+        const newBudget = prompt('Enter new monthly budget amount:', currentBudgetLimit);
+        if (newBudget === null) return;
+
+        const amount = parseFloat(newBudget);
+        if (Number.isNaN(amount) || amount < 0) {
+            showError('Please enter a valid budget amount');
+            return;
         }
+
+        showFlash('Saving budget...', 'info');
+        saveBudget(amount.toFixed(2))
+            .then(data => {
+                showFlash(data.message, 'success');
+                setTimeout(() => window.location.reload(), 400);
+            })
+            .catch(error => showError(error.message));
     }
     
     // Reset budget
     function resetBudget() {
-        if (confirm('Are you sure you want to reset your budget progress?')) {
-            showFlash('Budget progress reset successfully', 'success');
-            
-            // Reset progress bar
-            const progressBar = document.getElementById('budgetProgress');
-            const percentage = document.getElementById('budgetPercentage');
-            
-            progressBar.style.width = '0%';
-            percentage.textContent = '0%';
-            
-            setTimeout(() => {
-                progressBar.style.width = '0%';
-                percentage.textContent = '0%';
-            }, 300);
+        if (!confirm("Clear this month's budget limit? Your expenses will stay unchanged.")) {
+            return;
         }
+
+        showFlash('Clearing budget...', 'info');
+        saveBudget('0')
+            .then(data => {
+                showFlash(data.message, 'success');
+                setTimeout(() => window.location.reload(), 400);
+            })
+            .catch(error => showError(error.message));
     }
     
     // Export table data
@@ -1029,125 +1139,152 @@
     
     // Edit expense
     function editExpense(expenseId) {
-        showFlash(`Editing expense #${expenseId}`, 'info');
-        // In a real app, this would open an edit modal
+        const row = document.querySelector(`.table-row[data-expense-id="${expenseId}"]`);
+        const modal = document.getElementById('editExpenseModal');
+        const form = document.getElementById('editExpenseForm');
+
+        if (!row || !modal || !form) {
+            showError('Unable to open this expense for editing.');
+            return;
+        }
+
+        form.action = expenseUrl(editExpenseUrlTemplate, expenseId);
+        document.getElementById('editDescription').value = row.dataset.description || '';
+        document.getElementById('editAmount').value = row.dataset.amount || '';
+        document.getElementById('editCategory').value = row.dataset.categoryValue || 'Other';
+        document.getElementById('editDate').value = row.dataset.date || '';
+
+        ensureModalStyles();
+        modal.style.display = 'flex';
     }
     
     // Delete expense
     function deleteExpense(expenseId) {
-        if (confirm('Are you sure you want to delete this expense?')) {
-            const row = document.querySelector(`[onclick="deleteExpense(${expenseId})"]`).closest('.table-row');
-            row.style.opacity = '0.5';
-            row.style.transform = 'translateX(-20px)';
-            
-            setTimeout(() => {
-                row.remove();
-                showFlash('Expense deleted successfully', 'success');
-                calculateTopCategory();
-            }, 300);
+        if (!confirm('Are you sure you want to delete this expense?')) {
+            return;
         }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = expenseUrl(deleteExpenseUrlTemplate, expenseId);
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function ensureModalStyles() {
+        if (document.querySelector('#modalStyles')) {
+            return;
+        }
+
+        const styles = `
+            <style id="modalStyles">
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(5px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    animation: fadeIn 0.3s ease;
+                }
+                
+                .modal-content {
+                    background: var(--card-bg);
+                    border-radius: 20px;
+                    padding: 2rem;
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    border: 1px solid var(--card-border);
+                    box-shadow: var(--shadow);
+                    animation: slideInUp 0.3s ease;
+                }
+                
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1.5rem;
+                    padding-bottom: 1rem;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                .modal-header h3 {
+                    margin: 0;
+                    color: var(--accent-blue);
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                }
+                
+                .modal-close {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    padding: 0;
+                    line-height: 1;
+                }
+                
+                .modal-close:hover {
+                    color: var(--accent-blue);
+                }
+                
+                .modal-body {
+                    padding: 1rem 0;
+                }
+                
+                .form-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 1rem;
+                    margin-top: 2rem;
+                    padding-top: 1.5rem;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(30px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+            </style>
+        `;
+        document.head.insertAdjacentHTML('beforeend', styles);
     }
     
     // Show add expense modal
     function showAddExpenseModal() {
         const modal = document.getElementById('addExpenseModal');
         modal.style.display = 'flex';
-        
-        // Add modal styles if not present
-        if (!document.querySelector('#modalStyles')) {
-            const styles = `
-                <style id="modalStyles">
-                    .modal-overlay {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.7);
-                        backdrop-filter: blur(5px);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 2000;
-                        animation: fadeIn 0.3s ease;
-                    }
-                    
-                    .modal-content {
-                        background: var(--card-bg);
-                        border-radius: 20px;
-                        padding: 2rem;
-                        max-width: 500px;
-                        width: 90%;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                        border: 1px solid var(--card-border);
-                        box-shadow: var(--shadow);
-                        animation: slideInUp 0.3s ease;
-                    }
-                    
-                    .modal-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 1.5rem;
-                        padding-bottom: 1rem;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    }
-                    
-                    .modal-header h3 {
-                        margin: 0;
-                        color: var(--accent-blue);
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                    }
-                    
-                    .modal-close {
-                        background: none;
-                        border: none;
-                        color: var(--text-muted);
-                        font-size: 1.5rem;
-                        cursor: pointer;
-                        padding: 0;
-                        line-height: 1;
-                    }
-                    
-                    .modal-close:hover {
-                        color: var(--accent-blue);
-                    }
-                    
-                    .modal-body {
-                        padding: 1rem 0;
-                    }
-                    
-                    .form-actions {
-                        display: flex;
-                        justify-content: flex-end;
-                        gap: 1rem;
-                        margin-top: 2rem;
-                        padding-top: 1.5rem;
-                        border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    }
-                    
-                    @keyframes slideInUp {
-                        from {
-                            transform: translateY(30px);
-                            opacity: 0;
-                        }
-                        to {
-                            transform: translateY(0);
-                            opacity: 1;
-                        }
-                    }
-                </style>
-            `;
-            document.head.insertAdjacentHTML('beforeend', styles);
-        }
+        ensureModalStyles();
     }
     
     // Close modal
     function closeModal() {
         const modal = document.getElementById('addExpenseModal');
+        modal.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.style.animation = '';
+        }, 300);
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('editExpenseModal');
         modal.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => {
             modal.style.display = 'none';
@@ -1177,12 +1314,37 @@
         
         showFlash('Adding expense...', 'info');
     });
+
+    document.getElementById('editExpenseForm')?.addEventListener('submit', function(e) {
+        const description = document.getElementById('editDescription').value.trim();
+        const amount = document.getElementById('editAmount').value;
+        
+        if (!description) {
+            e.preventDefault();
+            showError('Please enter a description');
+            return;
+        }
+        
+        if (!amount || parseFloat(amount) <= 0) {
+            e.preventDefault();
+            showError('Please enter a valid amount greater than 0');
+            return;
+        }
+        
+        document.getElementById('editAmount').value = parseFloat(amount).toFixed(2);
+        showFlash('Saving expense...', 'info');
+    });
     
     // Close modal when clicking outside
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('addExpenseModal');
         if (modal && e.target === modal) {
             closeModal();
+        }
+
+        const editModal = document.getElementById('editExpenseModal');
+        if (editModal && e.target === editModal) {
+            closeEditModal();
         }
     });
     
@@ -1224,6 +1386,3 @@
     }
 </script>
 {% endblock %}
-
-
-

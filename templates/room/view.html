@@ -6,17 +6,28 @@
 <style>
     /* Room View Specific Styles */
     .room-view-container {
-        max-width: 1400px;
+        max-width: 1520px;
         margin: 0 auto;
         padding: 0 1.5rem;
         animation: fadeIn 0.5s ease;
     }
     
     /* Room Header */
+    .room-layout-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.95fr);
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .room-left-column {
+        min-width: 0;
+    }
+
     .room-header {
         background: var(--card-bg);
         border-radius: 20px;
-        padding: 2rem;
+        padding: 1.5rem;
         margin-bottom: 2rem;
         border: 1px solid var(--card-border);
         position: relative;
@@ -33,13 +44,36 @@
         background: var(--secondary-gradient);
     }
     
-    .room-title-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
+    .room-hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: 1rem;
+        align-items: stretch;
+    }
+
+    .room-main-panel,
+    .room-actions-panel,
+    .room-stats {
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+    }
+
+    .room-main-panel {
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: stretch;
+        min-height: 0;
+    }
+
+    .room-title-section {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 0.85rem;
     }
     
     .room-title {
@@ -54,40 +88,194 @@
     .room-code-badge {
         background: rgba(138, 43, 226, 0.2);
         color: var(--accent-purple);
-        padding: 8px 16px;
+        padding: 8px 14px;
         border-radius: 20px;
         font-family: monospace;
-        font-size: 1.1rem;
+        font-size: 1rem;
         letter-spacing: 1px;
         font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: fit-content;
+        max-width: 100%;
     }
     
     .room-description {
         color: var(--text-muted);
-        font-size: 1.1rem;
+        font-size: 1rem;
         line-height: 1.6;
-        margin-bottom: 1.5rem;
         padding: 1rem;
         background: rgba(255, 255, 255, 0.03);
         border-radius: 10px;
         border-left: 3px solid var(--accent-blue);
+        margin: 0;
+    }
+
+    .room-main-content {
+        display: grid;
+        gap: 1rem;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .room-notes-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 1rem 1rem 0.95rem;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        width: 100%;
+    }
+
+    .room-notes-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .room-notes-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        color: var(--accent-blue);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .room-notes-count {
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(138, 43, 226, 0.18);
+        color: var(--accent-purple);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .room-note-form {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .room-note-compose {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.85rem;
+        align-items: stretch;
+    }
+
+    .room-note-input {
+        width: 100%;
+        min-height: 88px;
+        resize: none;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(8, 12, 28, 0.35);
+        color: var(--text-light);
+        padding: 0.9rem 1rem;
+        font: inherit;
+    }
+
+    .room-note-input:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.12);
+    }
+
+    .room-note-form-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 1rem;
+    }
+
+    .room-note-hint {
+        color: var(--text-muted);
+        font-size: 0.84rem;
+    }
+
+    .room-note-submit {
+        justify-content: center;
+        min-width: 142px;
+        height: 100%;
+        align-self: stretch;
+    }
+
+    .room-notes-list {
+        display: grid;
+        gap: 0.75rem;
+        max-height: 190px;
+        overflow-y: auto;
+        padding-right: 0.15rem;
+    }
+
+    .room-note-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 0.85rem 0.95rem;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .room-note-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .room-note-author {
+        font-weight: 600;
+        color: var(--text-light);
+    }
+
+    .room-note-time {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .room-note-content {
+        color: var(--text-muted);
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .room-notes-empty {
+        padding: 1rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        text-align: center;
     }
     
     /* Room Stats */
     .room-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+        padding: 1rem;
+        align-items: stretch;
     }
     
     .stat-card {
         background: rgba(255, 255, 255, 0.05);
-        border-radius: 15px;
-        padding: 1.5rem;
+        border-radius: 12px;
+        padding: 1rem;
         text-align: center;
         transition: var(--transition);
         border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        min-height: 128px;
     }
     
     .stat-card:hover {
@@ -96,22 +284,23 @@
     }
     
     .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
         background: var(--secondary-gradient);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.5rem;
+        margin: 0;
+        font-size: 1.15rem;
     }
     
     .stat-value {
-        font-size: 1.8rem;
+        font-size: 1.35rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.15rem;
         color: var(--accent-blue);
+        overflow-wrap: anywhere;
     }
     
     .stat-label {
@@ -121,22 +310,41 @@
     
     /* Room Actions */
     .room-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .room-actions form {
+        width: 100%;
+    }
+
+    .room-actions-panel {
+        padding: 1rem;
+    }
+
+    .room-actions-title {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.85rem;
     }
     
     .action-btn {
         display: flex;
         align-items: center;
+        justify-content: flex-start;
         gap: 0.75rem;
-        padding: 12px 24px;
+        width: 100%;
+        padding: 12px 14px;
         border-radius: 12px;
         text-decoration: none;
         font-weight: 500;
         transition: var(--transition);
         border: 2px solid transparent;
+        min-height: 48px;
     }
     
     .action-btn-primary {
@@ -162,15 +370,23 @@
     
     /* Main Content Grid */
     .room-content-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 2rem;
         margin-bottom: 3rem;
+    }
+
+    .sidebar-section {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 1.5rem;
     }
     
     @media (max-width: 1024px) {
-        .room-content-grid {
+        .room-layout-grid {
             grid-template-columns: 1fr;
+        }
+
+        .sidebar-section {
+            margin-top: 0;
         }
     }
     
@@ -397,8 +613,7 @@
     .settlement-section {
         background: rgba(0, 255, 157, 0.05);
         border-radius: 15px;
-        padding: 2rem;
-        margin-top: 2rem;
+        padding: 1.5rem;
         border: 1px solid rgba(0, 255, 157, 0.2);
     }
     
@@ -447,10 +662,13 @@
         font-weight: 600;
         color: var(--accent-blue);
     }
-    
+
     /* Budget Progress */
     .budget-progress {
-        margin-top: 2rem;
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid var(--card-border);
     }
     
     .progress-header {
@@ -518,8 +736,36 @@
         font-size: 0.85rem;
         color: var(--text-muted);
     }
+
+    .management-section {
+        background: rgba(138, 43, 226, 0.06);
+        border: 1px solid rgba(138, 43, 226, 0.2);
+    }
+
+    .management-copy {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin: -0.35rem 0 1rem;
+    }
+
+    .management-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .management-actions .action-btn {
+        justify-content: center;
+    }
     
     /* Responsive */
+    @media (max-width: 1180px) {
+        .room-actions {
+            grid-template-columns: repeat(3, minmax(130px, 1fr));
+        }
+    }
+
     @media (max-width: 768px) {
         .room-view-container {
             padding: 0 1rem;
@@ -528,6 +774,15 @@
         .room-header {
             padding: 1.5rem;
         }
+
+        .room-hero-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .room-main-panel {
+            grid-template-columns: 1fr;
+            min-height: 0;
+        }
         
         .room-title-section {
             flex-direction: column;
@@ -535,11 +790,27 @@
         }
         
         .room-stats {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr;
         }
-        
+
         .room-actions {
-            flex-direction: column;
+            grid-template-columns: 1fr;
+        }
+
+        .management-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .room-note-compose {
+            grid-template-columns: 1fr;
+        }
+
+        .room-note-form-row {
+            justify-content: flex-start;
+        }
+
+        .room-note-submit {
+            min-width: 0;
         }
         
         .table-header,
@@ -569,158 +840,212 @@
 
 {% block content %}
 <div class="room-view-container">
-    <!-- Room Header -->
-    <div class="room-header">
-        <div class="room-title-section">
-            <div>
-                <h1 class="room-title">{{ room.name }}</h1>
-                <div class="room-code-badge mt-1">
-                    <i class="fas fa-key"></i> {{ room.room_code }}
+    <div class="room-layout-grid">
+        <div class="room-left-column">
+            <!-- Room Header -->
+            <div class="room-header">
+                <div class="room-hero-grid">
+                    <div class="room-main-panel">
+                        <div class="room-title-section">
+                            <h1 class="room-title">{{ room.name }}</h1>
+                            <div class="room-code-badge mt-1">
+                                <i class="fas fa-key"></i> {{ room.room_code }}
+                            </div>
+                        </div>
+
+                        <div class="room-main-content">
+                            {% if room.description %}
+                            <div class="room-description">
+                                <i class="fas fa-info-circle"></i> {{ room.description }}
+                            </div>
+                            {% endif %}
+
+                            <div class="room-notes-card" id="roomNotes">
+                                <div class="room-notes-header">
+                                    <div class="room-notes-title">
+                                        <i class="fas fa-note-sticky"></i>
+                                        <span>Room Notes</span>
+                                    </div>
+                                    <div class="room-notes-count">{{ room_notes|length }}</div>
+                                </div>
+
+                                <form method="POST" action="{{ url_for('add_room_note', room_id=room.id) }}" class="room-note-form">
+                                    <div class="room-note-compose">
+                                        <textarea
+                                            name="content"
+                                            class="room-note-input"
+                                            maxlength="500"
+                                            placeholder="Write a quick note for everyone in this room..."
+                                            required
+                                        ></textarea>
+                                        <button type="submit" class="action-btn action-btn-primary room-note-submit">
+                                            <i class="fas fa-paper-plane"></i> Post Note
+                                        </button>
+                                    </div>
+                                    <div class="room-note-form-row">
+                                        <div class="room-note-hint">Shared with all room members. Keep it short and useful.</div>
+                                    </div>
+                                </form>
+
+                                {% if room_notes %}
+                                <div class="room-notes-list">
+                                    {% for note in room_notes %}
+                                    <div class="room-note-item">
+                                        <div class="room-note-meta">
+                                            <div class="room-note-author">{{ note.author.username }}</div>
+                                            <div class="room-note-time">{{ note.created_at.strftime('%b %d, %I:%M %p') }}</div>
+                                        </div>
+                                        <div class="room-note-content">{{ note.content }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="room-notes-empty">
+                                    No notes yet. Post the first update for the room.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-actions-panel">
+                        <div class="room-actions-title">Room Actions</div>
+                        <div class="room-actions">
+                            <a href="{{ url_for('add_expense', room_id=room.id) }}" class="action-btn action-btn-primary">
+                                <i class="fas fa-plus-circle"></i> Add Expense
+                            </a>
+                            <a href="{{ url_for('export_room', room_id=room.id) }}" class="action-btn action-btn-secondary">
+                                <i class="fas fa-download"></i> Export CSV
+                            </a>
+                            <form method="POST" action="{{ url_for('leave_room', room_id=room.id) }}" style="display:inline;">
+                                <button type="submit" class="action-btn action-btn-secondary" onclick="return confirm('Exit this room?')">
+                                    <i class="fas fa-sign-out-alt"></i> Leave Room
+                                </button>
+                            </form>
+                            {% if is_admin %}
+                            <button class="action-btn action-btn-secondary" id="shareRoomBtn">
+                                <i class="fas fa-share-alt"></i> Share Room
+                            </button>
+                            <form method="POST" action="{{ url_for('delete_room', room_id=room.id) }}" style="display:inline;">
+                                <button type="submit" class="action-btn action-btn-secondary" onclick="return confirm('Delete this room permanently?')">
+                                    <i class="fas fa-trash"></i> Delete Room
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Room Stats -->
+                    <div class="room-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-value">{{ members|length }}</div>
+                            <div class="stat-label">Total Members</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="stat-value">{{ expenses|length }}</div>
+                            <div class="stat-label">Total Expenses</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-value">₹{{ "%.2f"|format(expenses|sum(attribute='amount')) }}</div>
+                            <div class="stat-label">Total Spent</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="stat-value">{{ room.created_at.strftime('%b %d') }}</div>
+                            <div class="stat-label">Created On</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="room-actions">
-                <a href="{{ url_for('add_expense', room_id=room.id) }}" class="action-btn action-btn-primary">
-                    <i class="fas fa-plus-circle"></i> Add Expense
-                </a>
-                <a href="{{ url_for('export_room', room_id=room.id) }}" class="action-btn action-btn-secondary">
-                    <i class="fas fa-download"></i> Export CSV
-                </a>
-                <form method="POST" action="{{ url_for('leave_room', room_id=room.id) }}" style="display:inline;">
-                    <button type="submit" class="action-btn action-btn-secondary" onclick="return confirm('Exit this room?')">
-                        <i class="fas fa-sign-out-alt"></i> Leave Room
-                    </button>
-                </form>
-                {% if is_admin %}
-                <button class="action-btn action-btn-secondary" id="shareRoomBtn">
-                    <i class="fas fa-share-alt"></i> Share Room
-                </button>
-                <form method="POST" action="{{ url_for('delete_room', room_id=room.id) }}" style="display:inline;">
-                    <button type="submit" class="action-btn action-btn-secondary" onclick="return confirm('Delete this room permanently?')">
-                        <i class="fas fa-trash"></i> Delete Room
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        
-        {% if room.description %}
-        <div class="room-description">
-            <i class="fas fa-info-circle"></i> {{ room.description }}
-        </div>
-        {% endif %}
-        
-        <!-- Room Stats -->
-        <div class="room-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-value">{{ members|length }}</div>
-                <div class="stat-label">Total Members</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
-                <div class="stat-value">{{ expenses|length }}</div>
-                <div class="stat-label">Total Expenses</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="stat-value">₹{{ "%.2f"|format(expenses|sum(attribute='amount')) }}</div>
-                <div class="stat-label">Total Spent</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar"></i>
-                </div>
-                <div class="stat-value">{{ room.created_at.strftime('%b %d') }}</div>
-                <div class="stat-label">Created On</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Main Content Grid -->
-    <div class="room-content-grid">
-        <!-- Left Column: Expenses -->
-        <div class="expenses-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-receipt"></i> Recent Expenses
-                </h2>
-                <div class="expense-filters">
-                    <select class="form-control" style="width: auto; min-width: 150px;">
-                        <option>All Categories</option>
-                        <option>Food</option>
-                        <option>Travel</option>
-                        <option>Shopping</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-            </div>
-            
-            {% if expenses %}
-            <div class="expenses-table">
-                <!-- Table Header -->
-                <div class="table-header">
-                    <div>Description</div>
-                    <div>Amount</div>
-                    <div>Category</div>
-                    <div>Paid By</div>
-                    <div>Date</div>
-                    <div style="width: 60px;"></div>
+
+            <div class="expenses-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-receipt"></i> Recent Expenses
+                    </h2>
+                    <div class="expense-filters">
+                        <select class="form-control" style="width: auto; min-width: 150px;">
+                            <option>All Categories</option>
+                            <option>Food</option>
+                            <option>Travel</option>
+                            <option>Shopping</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <!-- Expense Rows -->
-                {% for expense in expenses %}
-                <div class="expense-row">
-                    <div class="expense-description">
-                        <i class="fas fa-{% if expense.category == 'Food' %}utensils{% elif expense.category == 'Travel' %}car{% elif expense.category == 'Shopping' %}shopping-bag{% else %}receipt{% endif %}"></i>
-                        {{ expense.description }}
+                {% if expenses %}
+                <div class="expenses-table">
+                    <!-- Table Header -->
+                    <div class="table-header">
+                        <div>Description</div>
+                        <div>Amount</div>
+                        <div>Category</div>
+                        <div>Paid By</div>
+                        <div>Date</div>
+                        <div style="width: 60px;"></div>
                     </div>
-                    <div class="expense-amount">₹{{ "%.2f"|format(expense.amount) }}</div>
-                    <div>
-                        <span class="expense-category category-{{ expense.category|lower }}">
-                            {{ expense.category }}
-                        </span>
-                    </div>
-                    <div class="expense-payer">
-                        <div class="payer-avatar">
-                            {{ expense.payer.username[:1].upper() }}
+                    
+                    <!-- Expense Rows -->
+                    {% for expense in expenses %}
+                    <div class="expense-row">
+                        <div class="expense-description">
+                            <i class="fas fa-{% if expense.category == 'Food' %}utensils{% elif expense.category == 'Travel' %}car{% elif expense.category == 'Shopping' %}shopping-bag{% else %}receipt{% endif %}"></i>
+                            {{ expense.description }}
                         </div>
-                        {{ expense.payer.username }}
-                    </div>
-                    <div class="expense-date">
-                        {{ expense.date.strftime('%b %d, %I:%M %p') }}
-                    </div>
-                    <div class="expense-actions">
-                        {% if is_admin or expense.paid_by == current_user.id %}
-                        <div class="action-icon" title="Edit">
-                            <i class="fas fa-edit"></i>
+                        <div class="expense-amount">₹{{ "%.2f"|format(expense.amount) }}</div>
+                        <div>
+                            <span class="expense-category category-{{ expense.category|lower }}">
+                                {{ expense.category }}
+                            </span>
                         </div>
-                        <div class="action-icon" title="Delete">
-                            <i class="fas fa-trash"></i>
+                        <div class="expense-payer">
+                            <div class="payer-avatar">
+                                {{ expense.payer.username[:1].upper() }}
+                            </div>
+                            {{ expense.payer.username }}
                         </div>
-                        {% endif %}
+                        <div class="expense-date">
+                            {{ expense.date.strftime('%b %d, %I:%M %p') }}
+                        </div>
+                        <div class="expense-actions">
+                            {% if is_admin or expense.paid_by == current_user.id %}
+                            <div class="action-icon" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="action-icon" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                {% else %}
+                <div class="empty-expenses">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No Expenses Yet</h3>
+                    <p>Start by adding your first expense to this room.</p>
+                    <a href="{{ url_for('add_expense', room_id=room.id) }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus-circle"></i> Add First Expense
+                    </a>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="empty-expenses">
-                <i class="fas fa-receipt"></i>
-                <h3>No Expenses Yet</h3>
-                <p>Start by adding your first expense to this room.</p>
-                <a href="{{ url_for('add_expense', room_id=room.id) }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-plus-circle"></i> Add First Expense
-                </a>
-            </div>
-            {% endif %}
         </div>
         
         <!-- Right Column: Members & Info -->
@@ -804,7 +1129,7 @@
                     {% endif %}
                 </ul>
             </div>
-            <div class="members-section mt-3">
+            <div class="members-section">
                 <div class="section-header">
                     <h2 class="section-title">
                         <i class="fas fa-bell"></i> Room Activity
@@ -868,13 +1193,14 @@
             
             <!-- Room Admin Info -->
             {% if is_admin %}
-            <div class="members-section mt-3">
+            <div class="members-section management-section">
                 <div class="section-header">
                     <h2 class="section-title">
                         <i class="fas fa-crown"></i> Room Management
                     </h2>
                 </div>
-                <div class="room-actions" style="flex-direction: column; margin: 0;">
+                <p class="management-copy">Quick admin tools for inviting people and updating this room without adding extra clutter to the page.</p>
+                <div class="management-actions">
                     <button class="action-btn action-btn-secondary w-100" id="inviteMembersBtn">
                         <i class="fas fa-user-plus"></i> Invite Members
                     </button>
@@ -1191,6 +1517,3 @@
     });
 </script>
 {% endblock %}
-
-
-
