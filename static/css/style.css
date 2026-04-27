@@ -122,6 +122,7 @@ a:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
 }
 
 .navbar-brand {
@@ -140,6 +141,8 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .nav-link {
@@ -310,6 +313,182 @@ a:hover {
 .form-control::placeholder {
     color: var(--text-muted);
     opacity: 0.7;
+}
+
+/* ===== PAGE GUIDE ===== */
+.guide-button {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 1100;
+    border: 1px solid rgba(0, 212, 255, 0.45);
+    background: rgba(15, 12, 41, 0.92);
+    color: var(--text-light);
+    border-radius: 999px;
+    padding: 0.8rem 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0;
+    transition: var(--transition);
+}
+
+.guide-button:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 16px 40px rgba(0, 212, 255, 0.18);
+}
+
+.guide-button-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.24), rgba(0, 255, 157, 0.16));
+    color: var(--accent-blue);
+}
+
+.guide-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(5, 4, 18, 0.72);
+    backdrop-filter: blur(8px);
+}
+
+.guide-modal.active {
+    display: flex;
+}
+
+.guide-modal-panel {
+    width: min(860px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    background: rgba(18, 15, 48, 0.96);
+    border: 1px solid rgba(0, 212, 255, 0.28);
+    border-radius: 18px;
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45);
+    padding: 1.5rem;
+    animation: guideSlideIn 0.22s ease;
+}
+
+.guide-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.guide-kicker {
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 0.35rem;
+}
+
+.guide-modal h2 {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 1.85rem;
+}
+
+.guide-close {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.guide-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.guide-intro {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin: 1.2rem 0;
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+    gap: 1rem;
+}
+
+.guide-card {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.2rem;
+}
+
+.guide-card-accent {
+    border-color: rgba(0, 255, 157, 0.22);
+    background: rgba(0, 255, 157, 0.045);
+}
+
+.guide-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--accent-blue);
+    font-size: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.guide-card-accent h3 {
+    color: var(--success);
+}
+
+.guide-steps,
+.guide-tips {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--text-light);
+}
+
+.guide-steps li,
+.guide-tips li {
+    margin-bottom: 0.75rem;
+    color: var(--text-muted);
+}
+
+.guide-steps li::marker {
+    color: var(--accent-blue);
+    font-weight: 800;
+}
+
+.guide-tips li::marker {
+    color: var(--success);
+}
+
+@keyframes guideSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* Form Icons */
@@ -894,9 +1073,15 @@ a:hover {
     .navbar {
         padding: 1rem;
     }
+
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
+    }
     
     .nav-menu {
         gap: 1rem;
+        justify-content: center;
     }
     
     .dashboard-container {
@@ -926,9 +1111,22 @@ a:hover {
         right: 1rem;
         max-width: none;
     }
+
+    .guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .guide-button {
+        right: 1rem;
+        bottom: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
+    .nav-menu {
+        justify-content: center;
+    }
+
     .quick-actions {
         grid-template-columns: 1fr;
     }
@@ -948,12 +1146,34 @@ a:hover {
     .nav-link {
         padding: 0.5rem;
     }
+
+    .guide-button {
+        padding: 0.7rem;
+    }
+
+    .guide-button span:last-child {
+        display: none;
+    }
+
+    .guide-modal {
+        padding: 0.75rem;
+    }
+
+    .guide-modal-panel {
+        padding: 1rem;
+    }
+
+    .guide-modal h2 {
+        font-size: 1.35rem;
+    }
 }
 
 /* ===== PRINT STYLES ===== */
 @media print {
     .navbar,
     .footer,
+    .guide-button,
+    .guide-modal,
     .btn,
     .action-btn {
         display: none !important;

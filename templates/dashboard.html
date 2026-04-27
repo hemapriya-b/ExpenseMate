@@ -522,7 +522,7 @@
                 </div>
                 
                 <div style="margin-top: 1.5rem;">
-                    <button class="btn btn-outline" style="width: 100%;" disabled>
+                    <button class="btn btn-outline" style="width: 100%;" onclick="editBudget()">
                         <i class="fas fa-edit"></i> Edit Budget
                     </button>
                 </div>
@@ -534,6 +534,70 @@
 
 {% block extra_js %}
 <script>
+    const currentPersonalBudget = {{ "%.2f"|format(personal_budget)|tojson }};
+
+    function showDashboardFlash(message, type = 'info') {
+        const existingFlash = document.querySelector('.flash-message');
+        if (existingFlash) existingFlash.remove();
+
+        const flashDiv = document.createElement('div');
+        flashDiv.className = `flash-message flash-${type} mb-4`;
+        flashDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            ${message}
+            <button class="flash-close">&times;</button>
+        `;
+
+        const welcomeSection = document.querySelector('.welcome-section');
+        welcomeSection.parentNode.insertBefore(flashDiv, welcomeSection.nextSibling);
+
+        flashDiv.querySelector('.flash-close').addEventListener('click', function() {
+            flashDiv.style.opacity = '0';
+            flashDiv.style.transform = 'translateY(-10px)';
+            setTimeout(() => flashDiv.remove(), 300);
+        });
+
+        setTimeout(() => {
+            if (flashDiv.parentElement) {
+                flashDiv.style.opacity = '0';
+                flashDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => flashDiv.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    function editBudget() {
+        const newBudget = prompt('Enter new monthly budget amount:', currentPersonalBudget);
+        if (newBudget === null) return;
+
+        const amount = parseFloat(newBudget);
+        if (Number.isNaN(amount) || amount < 0) {
+            showDashboardFlash('Please enter a valid budget amount', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('amount', amount.toFixed(2));
+        showDashboardFlash('Saving budget...', 'info');
+
+        fetch('{{ url_for("update_personal_budget") }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Could not update budget');
+                }
+                showDashboardFlash(data.message, 'success');
+                setTimeout(() => window.location.reload(), 400);
+            })
+            .catch(error => showDashboardFlash(error.message, 'error'));
+    }
+
     // Dashboard specific JavaScript
     document.addEventListener('DOMContentLoaded', function() {
         // Animate summary cards on load
@@ -585,4 +649,3 @@
     });
 </script>
 {% endblock %}
-

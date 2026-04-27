@@ -1,0 +1,105 @@
+<aside class="auth-character {{ side }}" data-focus-target="idle">
+    <div class="character-card">
+        <div class="speech-bubble" data-bubble-{{ side }}>
+            {% if side == 'left' %}
+            Type your name and I will greet you.
+            {% else %}
+            I will watch the form with you.
+            {% endif %}
+        </div>
+        <div class="avatar-stage">
+            <svg class="anime-avatar {{ character }}" viewBox="0 0 320 580" aria-hidden="true">
+                <defs>
+                    {% if character == 'boy' %}
+                    <linearGradient id="boyHair" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#33446f"/>
+                        <stop offset="100%" stop-color="#182542"/>
+                    </linearGradient>
+                    <linearGradient id="boyJacket" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#89c9ff"/>
+                        <stop offset="100%" stop-color="#4a74b7"/>
+                    </linearGradient>
+                    {% else %}
+                    <linearGradient id="girlHair" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#7b4b8a"/>
+                        <stop offset="100%" stop-color="#4d235d"/>
+                    </linearGradient>
+                    <linearGradient id="girlJacket" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#ff9bc5"/>
+                        <stop offset="100%" stop-color="#ca658e"/>
+                    </linearGradient>
+                    {% endif %}
+                    <linearGradient id="{{ character }}Skin" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#ffe7d6"/>
+                        <stop offset="100%" stop-color="#f4c9ad"/>
+                    </linearGradient>
+                </defs>
+
+                {% if character == 'boy' %}
+                <g>
+                    <ellipse cx="160" cy="553" rx="74" ry="16" fill="rgba(0,0,0,0.18)"/>
+                    <path d="M126 491 L118 554 L145 554 L154 495 Z" fill="#26365f"/>
+                    <path d="M170 491 L178 554 L205 554 L194 495 Z" fill="#26365f"/>
+                    <path d="M114 552 H149 Q155 566 139 570 H108 Q95 566 99 556 Z" fill="#0a1020"/>
+                    <path d="M173 552 H207 Q219 565 202 570 H171 Q159 565 163 556 Z" fill="#0a1020"/>
+                    <path d="M109 250 Q160 205 211 250 L223 482 Q194 498 160 498 Q126 498 97 482 Z" fill="url(#boyJacket)"/>
+                    <path d="M143 248 H177 L187 356 L160 388 L133 356 Z" fill="#f3f7ff" opacity="0.85"/>
+                    <path d="M151 253 H169 L175 354 L160 373 L145 354 Z" fill="#13213d"/>
+                    <path d="M160 247 L174 265 L160 282 L146 265 Z" fill="#ff93c2"/>
+                    <path class="arm-group pointer-arm" d="M208 275 Q254 284 274 293 Q283 297 282 306 Q281 317 267 317 Q248 314 205 303 Z" fill="url(#boyJacket)"/>
+                    <circle class="pointer-hand" cx="281" cy="306" r="14" fill="url(#boySkin)"/>
+                    <path d="M98 281 Q77 307 68 339 Q65 350 74 357 Q85 365 96 355 Q110 334 120 304 Z" fill="url(#boyJacket)"/>
+                    <circle cx="70" cy="351" r="13" fill="url(#boySkin)"/>
+                    <g>
+                        <ellipse cx="160" cy="183" rx="68" ry="82" fill="url(#boySkin)"/>
+                        <path d="M98 171 Q98 101 160 88 Q219 95 224 165 Q202 148 188 126 Q171 145 133 154 Q114 160 98 171 Z" fill="url(#boyHair)"/>
+                        <path d="M108 109 Q136 75 186 86 Q219 95 226 133 Q200 127 180 104 Q161 125 108 109 Z" fill="url(#boyHair)"/>
+                        <ellipse cx="133" cy="186" rx="14" ry="11" fill="#fff" class="eye-open"/>
+                        <ellipse cx="187" cy="186" rx="14" ry="11" fill="#fff" class="eye-open"/>
+                        <circle cx="133" cy="188" r="6" fill="#23365f" class="eye-open"/>
+                        <circle cx="187" cy="188" r="6" fill="#23365f" class="eye-open"/>
+                        <path d="M121 187 Q133 179 145 187" stroke="#23365f" stroke-width="3" stroke-linecap="round" fill="none" class="eye-closed"/>
+                        <path d="M175 187 Q187 179 199 187" stroke="#23365f" stroke-width="3" stroke-linecap="round" fill="none" class="eye-closed"/>
+                        <path d="M148 215 Q160 224 172 215" stroke="#d99b91" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M146 230 Q160 242 174 230" stroke="#9d5f71" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <ellipse cx="116" cy="214" rx="11" ry="6" fill="#ffabc3" opacity="0.35"/>
+                        <ellipse cx="204" cy="214" rx="11" ry="6" fill="#ffabc3" opacity="0.35"/>
+                    </g>
+                </g>
+                {% else %}
+                <g>
+                    <ellipse cx="160" cy="553" rx="74" ry="16" fill="rgba(0,0,0,0.18)"/>
+                    <path d="M129 492 L120 554 L147 554 L154 495 Z" fill="#3c2753"/>
+                    <path d="M171 492 L179 554 L206 554 L194 495 Z" fill="#3c2753"/>
+                    <path d="M116 552 H149 Q154 566 138 570 H108 Q96 566 100 556 Z" fill="#171024"/>
+                    <path d="M173 552 H208 Q220 566 204 570 H172 Q159 566 163 556 Z" fill="#171024"/>
+                    <path d="M111 248 Q160 206 209 248 L220 482 Q193 500 160 500 Q127 500 100 482 Z" fill="url(#girlJacket)"/>
+                    <path d="M140 248 H180 L190 370 Q177 393 160 402 Q143 393 130 370 Z" fill="#fff4f8" opacity="0.9"/>
+                    <path d="M160 252 L176 274 L160 303 L144 274 Z" fill="#7b4b8a"/>
+                    <path class="arm-group pointer-arm" d="M113 282 Q73 291 47 300 Q37 304 39 314 Q41 325 55 325 Q74 322 119 309 Z" fill="url(#girlJacket)"/>
+                    <circle class="pointer-hand" cx="40" cy="312" r="14" fill="url(#girlSkin)"/>
+                    <path d="M209 281 Q232 305 248 338 Q253 350 244 357 Q233 365 223 356 Q208 337 197 304 Z" fill="url(#girlJacket)"/>
+                    <circle cx="246" cy="351" r="13" fill="url(#girlSkin)"/>
+                    <g>
+                        <path d="M95 206 Q86 110 158 82 Q239 105 225 216 Q208 281 160 284 Q112 279 95 206 Z" fill="url(#girlHair)"/>
+                        <ellipse cx="160" cy="186" rx="67" ry="84" fill="url(#girlSkin)"/>
+                        <path d="M97 164 Q99 100 160 89 Q219 95 224 160 Q208 145 200 123 Q176 147 132 153 Q117 156 97 164 Z" fill="url(#girlHair)"/>
+                        <path d="M99 126 Q119 88 164 93 Q203 98 222 136 Q197 130 181 112 Q164 131 145 140 Q122 149 99 126 Z" fill="url(#girlHair)"/>
+                        <ellipse cx="134" cy="188" rx="14" ry="11" fill="#fff" class="eye-open"/>
+                        <ellipse cx="186" cy="188" rx="14" ry="11" fill="#fff" class="eye-open"/>
+                        <circle cx="134" cy="190" r="6" fill="#522960" class="eye-open"/>
+                        <circle cx="186" cy="190" r="6" fill="#522960" class="eye-open"/>
+                        <path d="M122 189 Q134 181 146 189" stroke="#522960" stroke-width="3" stroke-linecap="round" fill="none" class="eye-closed"/>
+                        <path d="M174 189 Q186 181 198 189" stroke="#522960" stroke-width="3" stroke-linecap="round" fill="none" class="eye-closed"/>
+                        <path d="M149 217 Q160 225 171 217" stroke="#d99b91" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M145 232 Q160 245 175 232" stroke="#9d5f71" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <ellipse cx="117" cy="214" rx="11" ry="6" fill="#ffabc3" opacity="0.4"/>
+                        <ellipse cx="203" cy="214" rx="11" ry="6" fill="#ffabc3" opacity="0.4"/>
+                    </g>
+                </g>
+                {% endif %}
+            </svg>
+            <div class="avatar-glow"></div>
+        </div>
+    </div>
+</aside>

@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 import io
 import os
@@ -12,9 +12,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+def _database_uri():
+    uri = (
+        os.getenv('DATABASE_URL')
+        or os.getenv('POSTGRES_URL')
+        or os.getenv('POSTGRES_PRISMA_URL')
+        or 'sqlite:///expensio.db'
+    )
+    if uri.startswith('postgres://'):
+        uri = uri.replace('postgres://', 'postgresql://', 1)
+    return uri
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///expensio.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = _database_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
@@ -71,6 +82,13 @@ class RoomActivity(db.Model):
     message = db.Column(db.String(300), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class RoomNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.String(500), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class PersonalExpense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
@@ -80,15 +98,28 @@ class PersonalExpense(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     budget_month = db.Column(db.String(7))  # YYYY-MM format
 
+class PersonalBudget(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    budget_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
+    amount = db.Column(db.Float, default=0, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'budget_month', name='unique_user_month_budget'),
+    )
+
 # Now define relationships
 User.rooms = db.relationship('RoomMember', backref='member', lazy=True)
 User.personal_expenses = db.relationship('PersonalExpense', backref='user', lazy=True)
+User.personal_budgets = db.relationship('PersonalBudget', backref='user', lazy=True)
 User.expenses_paid = db.relationship('Expense', foreign_keys='Expense.paid_by', backref='payer', lazy=True)
 User.expense_shares = db.relationship('ExpenseShare', backref='share_user', lazy=True)
 Room.expenses = db.relationship('Expense', backref='room', lazy=True)
 Room.members = db.relationship('RoomMember', backref='room', lazy=True)
 Room.activities = db.relationship('RoomActivity', backref='activity_room', lazy=True)
+Room.notes = db.relationship('RoomNote', backref='note_room', lazy=True, cascade='all, delete-orphan')
 Expense.shares = db.relationship('ExpenseShare', backref='expense', lazy=True, cascade='all, delete-orphan')
+User.room_notes = db.relationship('RoomNote', backref='author', lazy=True)
 
 # Ensure newly added tables exist even when app is imported (not only run as __main__).
 with app.app_context():
@@ -97,6 +128,198 @@ with app.app_context():
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))  # Fixed: Use db.session.get()
+
+@app.context_processor
+def inject_page_guide():
+    guides = {
+        'index': {
+            'title': 'Welcome Guide',
+            'intro': 'Expensio tracks shared room expenses and personal spending so you can see totals, balances, and budgets without manual math.',
+            'steps': [
+                'Create or join a room when expenses are shared with other people.',
+                'Use personal expenses for your own monthly spending and budget tracking.',
+                'Open charts or export when you want summaries outside the dashboard.'
+            ],
+            'tips': [
+                'Rooms are best for trips, rent, office lunches, and any shared bill.',
+                'Personal expenses stay private to your account.'
+            ]
+        },
+        'login': {
+            'title': 'Login Guide',
+            'intro': 'Sign in with your username and password to access your rooms, personal expenses, budgets, charts, and exports.',
+            'steps': [
+                'Enter the username you used during signup.',
+                'Enter your password and continue.',
+                'After login, your dashboard shows your financial snapshot.'
+            ],
+            'tips': ['Use the sample account from the database initializer only for local testing.']
+        },
+        'signup': {
+            'title': 'Signup Guide',
+            'intro': 'Create an account so Expensio can keep your rooms, balances, and personal expenses separate from other users.',
+            'steps': [
+                'Choose a unique username and email.',
+                'Set a password and confirm it.',
+                'After signup, start by creating a room or adding personal expenses.'
+            ],
+            'tips': ['Your username is shown inside rooms when you pay, owe, or receive money.']
+        },
+        'dashboard': {
+            'title': 'Dashboard Guide',
+            'intro': 'The dashboard is your quick overview: rooms, recent personal expenses, monthly budget, and your net room balance.',
+            'steps': [
+                'Total paid is money you directly paid in shared rooms.',
+                'Your share is calculated from expense splits inside each room.',
+                'Net balance means paid minus your share: positive means others owe you, negative means you owe others.'
+            ],
+            'tips': [
+                'Use Edit Budget to set this month\'s personal spending limit.',
+                'Enter a room to see exact who-pays-whom settlement instructions.'
+            ]
+        },
+        'create_room': {
+            'title': 'Create Room Guide',
+            'intro': 'A room groups people and shared expenses, like a trip, flat, event, or office lunch.',
+            'steps': [
+                'Give the room a clear name people will recognize.',
+                'Share the room code with people who should join.',
+                'Set a budget if you want a spending progress bar for the room.'
+            ],
+            'tips': [
+                'The creator becomes the room admin automatically.',
+                'Room codes should be easy to share but hard enough to guess.'
+            ]
+        },
+        'join_room': {
+            'title': 'Join Room Guide',
+            'intro': 'Join a room using the code shared by the room creator. The preview checks the real database before you submit.',
+            'steps': [
+                'Enter the room code exactly as shared.',
+                'Room name is optional, but if you enter it, it must match the room.',
+                'Check the preview for creator name and member count before joining.'
+            ],
+            'tips': [
+                'If the preview says room not found, check the code first.',
+                'Once joined, the room will appear on your dashboard.'
+            ]
+        },
+        'view_room': {
+            'title': 'Room Balance Guide',
+            'intro': 'This room uses every expense and split to calculate who paid extra, who owes, and the fewest payments needed to settle up.',
+            'steps': [
+                'For each expense, Expensio records who paid and how the amount is split.',
+                'Each member balance is total paid minus their assigned share.',
+                'Positive balance means that person should receive money. Negative balance means that person should pay.',
+                'Settlement Summary pairs people who owe with people who should receive, reducing many bills into simple transfers.'
+            ],
+            'tips': [
+                'Example: if A paid Rs. 900 for three equal members, A paid Rs. 900 and A\'s share is Rs. 300, so A gets Rs. 600 back.',
+                'If a balance shows Rs. 0.00, that member is already settled.'
+            ]
+        },
+        'add_expense': {
+            'title': 'Add Expense Guide',
+            'intro': 'Add a shared expense to a room and choose exactly how it should be split among members.',
+            'steps': [
+                'Enter what was bought, the amount, payer, category, and date.',
+                'Equal split divides the amount evenly among selected members.',
+                'Percentage split uses each member\'s percentage and must total 100%.',
+                'Custom split lets you type each member\'s exact share and must total the expense amount.'
+            ],
+            'tips': [
+                'The payer can be different from the person entering the expense.',
+                'After saving, room balances and settlement instructions update automatically.'
+            ]
+        },
+        'personal_expense': {
+            'title': 'Personal Expenses Guide',
+            'intro': 'Personal expenses track your own spending and monthly budget. These entries do not affect room settlements.',
+            'steps': [
+                'Add expenses with amount, category, and date.',
+                'The monthly budget compares current-month spending against your saved budget.',
+                'Edit Budget saves your limit for the current month.',
+                'Clear removes the budget limit but keeps your expenses.'
+            ],
+            'tips': [
+                'Use categories consistently so charts stay meaningful.',
+                'Budget progress is based only on this month\'s personal expenses.'
+            ]
+        },
+        'charts': {
+            'title': 'Charts Guide',
+            'intro': 'Charts turn your personal expense history into category, monthly, and comparison insights.',
+            'steps': [
+                'Category charts show where your money is going.',
+                'Monthly charts show spending trends over time.',
+                'Range filters change which expenses are included in the insight cards.'
+            ],
+            'tips': ['If charts look empty, add personal expenses first.']
+        },
+        'export_page': {
+            'title': 'Export Guide',
+            'intro': 'Export downloads your expense data as CSV so it can be opened in spreadsheet tools.',
+            'steps': [
+                'Choose room export for shared room expenses.',
+                'Choose personal export for your private expense log.',
+                'Use date ranges when you only need a smaller personal report.'
+            ],
+            'tips': ['CSV files are useful for backups, accounting, or sharing summaries.']
+        },
+        'export_room': {
+            'title': 'Room Export Guide',
+            'intro': 'Room export downloads the selected room\'s shared expenses, including payer, category, date, and notes.',
+            'steps': [
+                'Only room members can export a room.',
+                'The downloaded CSV can be opened in Excel, Numbers, or Google Sheets.'
+            ],
+            'tips': ['Use this after a trip or event to keep a final record.']
+        },
+        'export_personal': {
+            'title': 'Personal Export Guide',
+            'intro': 'Personal export downloads your own expense history for the selected date range.',
+            'steps': [
+                'Pick a range from the export page or URL.',
+                'The CSV includes description, amount, category, and date.'
+            ],
+            'tips': ['Exports include only your personal expenses, not room expenses.']
+        },
+        'about': {
+            'title': 'About Page Guide',
+            'intro': 'This page explains what Expensio is for and how shared expense tracking works at a high level.',
+            'steps': [
+                'Read the workflow to understand rooms, expenses, splits, and settlements.',
+                'Use the navigation bar when you are ready to try the app.'
+            ],
+            'tips': ['The room page has the most detailed explanation of balance logic.']
+        },
+        'not_found': {
+            'title': 'Page Guide',
+            'intro': 'This page was not found. Use the navigation bar to return to a working area of Expensio.',
+            'steps': ['Go back to dashboard, rooms, charts, or personal expenses.'],
+            'tips': ['If you followed an old link, the room or page may have been deleted.']
+        },
+        'server_error': {
+            'title': 'Error Guide',
+            'intro': 'Something went wrong while loading this page.',
+            'steps': ['Try refreshing, then return to the dashboard if the error continues.'],
+            'tips': ['Local development errors usually appear in the terminal logs.']
+        }
+    }
+
+    default_guide = {
+        'title': 'Page Guide',
+        'intro': 'Use this guide for a quick explanation of what this page does and how the numbers should be read.',
+        'steps': [
+            'Follow the main action button on the page.',
+            'Check totals and preview panels before saving changes.',
+            'Use the dashboard when you want to return to the overall summary.'
+        ],
+        'tips': ['Each page in Expensio has a guide tailored to its main workflow.']
+    }
+
+    endpoint = request.endpoint or ''
+    return {'page_guide': guides.get(endpoint, default_guide)}
 
 def _room_members(room_id):
     return RoomMember.query.filter_by(room_id=room_id).all()
@@ -204,6 +427,109 @@ def _build_settlements(member_data):
             j += 1
 
     return settlements
+
+def _range_start(range_key):
+    now = datetime.utcnow()
+    today = datetime(now.year, now.month, now.day)
+
+    if range_key == 'week':
+        return today - timedelta(days=today.weekday())
+    if range_key == 'month':
+        return datetime(now.year, now.month, 1)
+    if range_key == 'quarter':
+        return today - timedelta(days=90)
+    if range_key == 'year':
+        return datetime(now.year, 1, 1)
+    return None
+
+def _month_key(date=None):
+    return (date or datetime.utcnow()).strftime('%Y-%m')
+
+def _get_personal_budget(user_id, month_key=None):
+    month_key = month_key or _month_key()
+    budget = PersonalBudget.query.filter_by(
+        user_id=user_id,
+        budget_month=month_key
+    ).first()
+    return round(float(budget.amount or 0), 2) if budget else 0.0
+
+def _set_personal_budget(user_id, amount, month_key=None):
+    month_key = month_key or _month_key()
+    budget = PersonalBudget.query.filter_by(
+        user_id=user_id,
+        budget_month=month_key
+    ).first()
+    if not budget:
+        budget = PersonalBudget(user_id=user_id, budget_month=month_key, amount=0)
+        db.session.add(budget)
+
+    budget.amount = round(float(amount), 2)
+    return budget
+
+def _budget_progress_pct(spent, budget):
+    if budget <= 0:
+        return 0
+    return min(int(round((spent / budget) * 100)), 100)
+
+def _filter_personal_expenses(user_id, range_key='all'):
+    query = PersonalExpense.query.filter_by(user_id=user_id)
+    start = _range_start(range_key)
+    if start:
+        query = query.filter(PersonalExpense.date >= start)
+    return query.order_by(PersonalExpense.date.asc()).all()
+
+def _personal_chart_payload(expenses):
+    categories = {}
+    monthly_data = {}
+    total_spending = 0.0
+
+    for exp in expenses:
+        amount = float(exp.amount or 0)
+        category = exp.category or 'Other'
+        month = exp.date.strftime('%b %Y')
+        categories[category] = round(categories.get(category, 0.0) + amount, 2)
+        monthly_data[month] = round(monthly_data.get(month, 0.0) + amount, 2)
+        total_spending += amount
+
+    top_category = 'N/A'
+    top_amount = 0.0
+    if categories:
+        top_category = max(categories, key=categories.get)
+        top_amount = categories[top_category]
+
+    dates = [exp.date.date() for exp in expenses]
+    day_count = max(((max(dates) - min(dates)).days + 1), 1) if dates else 0
+    daily_average = round(total_spending / day_count, 2) if day_count else 0.0
+
+    now = datetime.utcnow()
+    current_month_key = now.strftime('%Y-%m')
+    previous_month_date = datetime(now.year, now.month, 1) - timedelta(days=1)
+    previous_month_key = previous_month_date.strftime('%Y-%m')
+
+    current_month_total = round(sum(exp.amount for exp in expenses if exp.date.strftime('%Y-%m') == current_month_key), 2)
+    previous_month_total = round(sum(exp.amount for exp in expenses if exp.date.strftime('%Y-%m') == previous_month_key), 2)
+    last_three_months = [
+        exp.amount for exp in expenses
+        if exp.date >= (datetime(now.year, now.month, 1) - timedelta(days=90))
+    ]
+    three_month_average = round(sum(last_three_months) / 3, 2) if last_three_months else 0.0
+
+    return {
+        'categories': categories,
+        'monthly_data': monthly_data,
+        'insights': {
+            'total_spending': round(total_spending, 2),
+            'top_category': top_category,
+            'top_amount': round(top_amount, 2),
+            'daily_average': daily_average,
+            'expense_count': len(expenses)
+        },
+        'comparison': {
+            'current_month': current_month_total,
+            'previous_month': previous_month_total,
+            'three_month_average': three_month_average
+        }
+    }
 
 # ========== AUTH ROUTES ==========
 @app.route('/')
@@ -314,14 +640,14 @@ def dashboard():
         
         # Simple monthly personal budget metrics
         now = datetime.utcnow()
-        month_key = now.strftime('%Y-%m')
+        month_key = _month_key(now)
         monthly_personal_expenses = [
             exp for exp in PersonalExpense.query.filter_by(user_id=current_user.id).all()
             if exp.date.strftime('%Y-%m') == month_key
         ]
         monthly_spent = round(sum(exp.amount for exp in monthly_personal_expenses), 2)
-        personal_budget = 0.0  # Not configured yet
-        budget_progress_pct = int((monthly_spent / personal_budget) * 100) if personal_budget > 0 else 0
+        personal_budget = _get_personal_budget(current_user.id, month_key)
+        budget_progress_pct = _budget_progress_pct(monthly_spent, personal_budget)
 
         return render_template('dashboard.html',
                              total_spent=round(total_spent, 2),
@@ -387,10 +713,14 @@ def create_room():
 @login_required
 def join_room():
     if request.method == 'POST':
-        room_name = request.form.get('room_name')
-        room_code = request.form.get('room_code')
-        
-        room = Room.query.filter_by(name=room_name, room_code=room_code).first()
+        room_name = (request.form.get('room_name') or '').strip()
+        room_code = (request.form.get('room_code') or '').strip().upper()
+
+        room_query = Room.query.filter_by(room_code=room_code)
+        if room_name:
+            room = room_query.filter(Room.name.ilike(room_name)).first()
+        else:
+            room = room_query.first()
         
         if room:
             # Check if already a member
@@ -417,9 +747,46 @@ def join_room():
             
             return redirect(url_for('view_room', room_id=room.id))
         else:
-            flash('Invalid room name or code', 'error')
+            flash('Invalid room code. Please check the code and try again.', 'error')
     
     return render_template('room/join.html')
+
+@app.route('/room/preview')
+@login_required
+def room_preview():
+    room_code = (request.args.get('room_code') or '').strip().upper()
+    room_name = (request.args.get('room_name') or '').strip()
+
+    if not room_code:
+        return jsonify({'found': False, 'message': 'Please enter a room code'}), 400
+
+    room_query = Room.query.filter_by(room_code=room_code)
+    if room_name:
+        room = room_query.filter(Room.name.ilike(room_name)).first()
+    else:
+        room = room_query.first()
+
+    if not room:
+        return jsonify({
+            'found': False,
+            'message': 'No room found with those details'
+        }), 404
+
+    creator = db.session.get(User, room.created_by)
+    member_count = RoomMember.query.filter_by(room_id=room.id).count()
+    already_member = RoomMember.query.filter_by(
+        room_id=room.id,
+        user_id=current_user.id
+    ).first() is not None
+
+    return jsonify({
+        'found': True,
+        'name': room.name,
+        'creator': creator.username if creator else 'Unknown',
+        'members': member_count,
+        'status': 'Already joined' if already_member else 'Active',
+        'already_member': already_member
+    })
 
 @app.route('/room/<int:room_id>')
 @login_required
@@ -443,6 +810,9 @@ def view_room(room_id):
         activities = RoomActivity.query.filter_by(room_id=room_id).order_by(
             RoomActivity.created_at.desc()
         ).limit(20).all()
+        room_notes = RoomNote.query.filter_by(room_id=room_id).order_by(
+            RoomNote.created_at.desc()
+        ).limit(6).all()
         
         return render_template('room/view.html',
                              room=room,
@@ -451,10 +821,41 @@ def view_room(room_id):
                              is_admin=member.is_admin,
                              settlements=settlements,
                              activities=activities,
-                             room_members=room_members)
+                             room_members=room_members,
+                             room_notes=room_notes)
     except Exception as e:
         flash(f'Error loading room: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
+
+@app.route('/room/<int:room_id>/notes', methods=['POST'])
+@login_required
+def add_room_note(room_id):
+    room = Room.query.get_or_404(room_id)
+    membership = RoomMember.query.filter_by(room_id=room_id, user_id=current_user.id).first()
+    if not membership:
+        flash('You are not a member of this room.', 'error')
+        return redirect(url_for('dashboard'))
+
+    content = (request.form.get('content') or '').strip()
+    if not content:
+        flash('Note cannot be empty.', 'error')
+        return redirect(url_for('view_room', room_id=room.id))
+    if len(content) > 500:
+        flash('Note must be 500 characters or fewer.', 'error')
+        return redirect(url_for('view_room', room_id=room.id))
+
+    db.session.add(RoomNote(
+        room_id=room_id,
+        user_id=current_user.id,
+        content=content
+    ))
+    db.session.add(RoomActivity(
+        room_id=room_id,
+        message=f'{current_user.username} posted a room note.'
+    ))
+    db.session.commit()
+    flash('Note posted to the room.', 'success')
+    return redirect(url_for('view_room', room_id=room.id))
 
 @app.route('/room/<int:room_id>/leave', methods=['POST'])
 @login_required
@@ -482,6 +883,7 @@ def leave_room(room_id):
         expense_ids = [exp.id for exp in Expense.query.filter_by(room_id=room_id).all()]
         if expense_ids:
             ExpenseShare.query.filter(ExpenseShare.expense_id.in_(expense_ids)).delete(synchronize_session=False)
+        RoomNote.query.filter_by(room_id=room_id).delete(synchronize_session=False)
         RoomActivity.query.filter_by(room_id=room_id).delete(synchronize_session=False)
         Expense.query.filter_by(room_id=room_id).delete(synchronize_session=False)
         db.session.delete(room)
@@ -504,6 +906,7 @@ def delete_room(room_id):
     if expense_ids:
         ExpenseShare.query.filter(ExpenseShare.expense_id.in_(expense_ids)).delete(synchronize_session=False)
     Expense.query.filter_by(room_id=room_id).delete(synchronize_session=False)
+    RoomNote.query.filter_by(room_id=room_id).delete(synchronize_session=False)
     RoomActivity.query.filter_by(room_id=room_id).delete(synchronize_session=False)
     RoomMember.query.filter_by(room_id=room_id).delete(synchronize_session=False)
     db.session.delete(room)
@@ -601,12 +1004,17 @@ def add_expense(room_id):
 @login_required
 def personal_expense():
     if request.method == 'POST':
-        description = request.form.get('description')
-        amount = float(request.form.get('amount'))
-        category = request.form.get('category')
-        date_str = request.form.get('date')
-        
         try:
+            description = (request.form.get('description') or '').strip()
+            amount = float(request.form.get('amount') or 0)
+            category = request.form.get('category') or 'Other'
+            date_str = request.form.get('date')
+
+            if not description:
+                raise ValueError('Description is required')
+            if amount <= 0:
+                raise ValueError('Amount must be greater than 0')
+
             if date_str:
                 date = datetime.strptime(date_str, '%Y-%m-%d')
             else:
@@ -617,13 +1025,14 @@ def personal_expense():
                 amount=amount,
                 category=category,
                 user_id=current_user.id,
-                date=date
+                date=date,
+                budget_month=date.strftime('%Y-%m')
             )
             
             db.session.add(new_expense)
             db.session.commit()
             flash('Personal expense added!', 'success')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('personal_expense'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding expense: {str(e)}', 'error')
@@ -644,13 +1053,14 @@ def personal_expense():
         top_category_pct = int(round((category_totals[top_category] / total) * 100))
 
     now = datetime.utcnow()
-    month_key = now.strftime('%Y-%m')
+    month_key = _month_key(now)
     month_expenses = [exp for exp in expenses if exp.date.strftime('%Y-%m') == month_key]
     month_total = round(sum(exp.amount for exp in month_expenses), 2)
     month_count = len(month_expenses)
     month_avg = round((month_total / month_count), 2) if month_count else 0
-    budget_limit = 0.0
-    budget_progress_pct = int((month_total / budget_limit) * 100) if budget_limit > 0 else 0
+    budget_limit = _get_personal_budget(current_user.id, month_key)
+    budget_progress_pct = _budget_progress_pct(month_total, budget_limit)
+    budget_remaining_pct = max(100 - budget_progress_pct, 0)
     
     return render_template(
         'expenses/personal.html',
@@ -663,45 +1073,152 @@ def personal_expense():
         month_count=month_count,
         month_avg=month_avg,
         budget_limit=budget_limit,
-        budget_progress_pct=budget_progress_pct
+        budget_progress_pct=budget_progress_pct,
+        budget_remaining_pct=budget_remaining_pct
     )
+
+@app.route('/budget/personal', methods=['POST'])
+@login_required
+def update_personal_budget():
+    wants_json = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    try:
+        raw_amount = request.form.get('amount')
+        amount = float(raw_amount or 0)
+        if amount < 0:
+            raise ValueError('Budget amount cannot be negative')
+
+        month_key = request.form.get('month') or _month_key()
+        if len(month_key) != 7:
+            raise ValueError('Invalid budget month')
+
+        _set_personal_budget(current_user.id, amount, month_key)
+        db.session.commit()
+
+        message = 'Monthly budget cleared!' if amount == 0 else 'Monthly budget updated!'
+        if wants_json:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'amount': round(amount, 2)
+            })
+
+        flash(message, 'success')
+    except Exception as e:
+        db.session.rollback()
+        if wants_json:
+            return jsonify({'success': False, 'message': str(e)}), 400
+        flash(f'Error updating budget: {str(e)}', 'error')
+
+    return redirect(request.referrer or url_for('personal_expense'))
+
+@app.route('/expense/personal/<int:expense_id>/edit', methods=['POST'])
+@login_required
+def edit_personal_expense(expense_id):
+    expense = PersonalExpense.query.filter_by(
+        id=expense_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    try:
+        description = (request.form.get('description') or '').strip()
+        amount = float(request.form.get('amount') or 0)
+        category = request.form.get('category') or 'Other'
+        date_str = request.form.get('date')
+
+        if not description:
+            raise ValueError('Description is required')
+        if amount <= 0:
+            raise ValueError('Amount must be greater than 0')
+
+        expense.description = description
+        expense.amount = amount
+        expense.category = category
+        expense.date = datetime.strptime(date_str, '%Y-%m-%d') if date_str else datetime.utcnow()
+        expense.budget_month = expense.date.strftime('%Y-%m')
+
+        db.session.commit()
+        flash('Personal expense updated!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating expense: {str(e)}', 'error')
+
+    return redirect(url_for('personal_expense'))
+
+@app.route('/expense/personal/<int:expense_id>/delete', methods=['POST'])
+@login_required
+def delete_personal_expense(expense_id):
+    expense = PersonalExpense.query.filter_by(
+        id=expense_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    try:
+        db.session.delete(expense)
+        db.session.commit()
+        flash('Personal expense deleted!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting expense: {str(e)}', 'error')
+
+    return redirect(url_for('personal_expense'))
 
 # ========== CHART ROUTES ==========
 @app.route('/charts')
 @login_required
 def charts():
     try:
-        # Get data for charts
-        personal_expenses = PersonalExpense.query.filter_by(
-            user_id=current_user.id
-        ).all()
-        
-        # Prepare data for pie chart (categories)
-        categories = {}
-        for exp in personal_expenses:
-            categories[exp.category] = categories.get(exp.category, 0) + exp.amount
-        
-        # Prepare data for bar chart (monthly expenses)
-        monthly_data = {}
-        for exp in personal_expenses:
-            month = exp.date.strftime('%Y-%m')
-            monthly_data[month] = monthly_data.get(month, 0) + exp.amount
-        
+        range_key = request.args.get('range', 'all')
+        if range_key not in {'week', 'month', 'quarter', 'year', 'all'}:
+            range_key = 'all'
+
+        personal_expenses = _filter_personal_expenses(current_user.id, range_key)
+        chart_data = _personal_chart_payload(personal_expenses)
+
         return render_template('charts.html',
-                             categories=categories,
-                             monthly_data=monthly_data)
+                             categories=chart_data['categories'],
+                             monthly_data=chart_data['monthly_data'],
+                             chart_data=chart_data,
+                             selected_range=range_key)
     except Exception as e:
         print(f"Charts error: {e}")
         return render_template('charts.html',
                              categories={},
-                             monthly_data={})
+                             monthly_data={},
+                             chart_data=_personal_chart_payload([]),
+                             selected_range='all')
 
 # ========== EXPORT ROUTES ==========
+@app.route('/export')
+@login_required
+def export_page():
+    memberships = RoomMember.query.filter_by(user_id=current_user.id).all()
+    room_ids = [membership.room_id for membership in memberships]
+    rooms = Room.query.filter(Room.id.in_(room_ids)).all() if room_ids else []
+    return render_template('export.html', rooms=rooms)
+
+@app.route('/export/room', methods=['POST'])
+@login_required
+def export_selected_room():
+    room_id = request.form.get('room_id', type=int)
+    if not room_id:
+        flash('Please select a room to export.', 'error')
+        return redirect(url_for('export_page'))
+    return redirect(url_for('export_room', room_id=room_id))
+
 @app.route('/export/<int:room_id>')
 @login_required
 def export_room(room_id):
     try:
         room = Room.query.get_or_404(room_id)
+        membership = RoomMember.query.filter_by(
+            room_id=room_id,
+            user_id=current_user.id
+        ).first()
+        if not membership:
+            flash('You can only export rooms you belong to.', 'error')
+            return redirect(url_for('dashboard'))
+
         expenses = Expense.query.filter_by(room_id=room_id).all()
         
         # Create CSV in memory
@@ -709,7 +1226,7 @@ def export_room(room_id):
         writer = csv.writer(output)
         
         # Write header
-        writer.writerow(['Description', 'Amount', 'Paid By', 'Category', 'Date'])
+        writer.writerow(['Description', 'Amount', 'Paid By', 'Category', 'Date', 'Notes'])
         
         # Write data
         for exp in expenses:
@@ -719,7 +1236,8 @@ def export_room(room_id):
                 exp.amount,
                 user.username if user else 'Unknown',
                 exp.category,
-                exp.date.strftime('%Y-%m-%d %H:%M:%S')
+                exp.date.strftime('%Y-%m-%d %H:%M:%S'),
+                exp.notes or ''
             ])
         
         # Prepare response
@@ -734,11 +1252,15 @@ def export_room(room_id):
         flash(f'Error exporting data: {str(e)}', 'error')
         return redirect(url_for('view_room', room_id=room_id))
 
-@app.route('/export/personal')
+@app.route('/export/personal', methods=['GET', 'POST'])
 @login_required
 def export_personal():
     try:
-        expenses = PersonalExpense.query.filter_by(user_id=current_user.id).all()
+        range_key = request.values.get('date_range') or request.args.get('range', 'all')
+        if range_key not in {'week', 'month', 'quarter', 'year', 'all'}:
+            range_key = 'all'
+
+        expenses = _filter_personal_expenses(current_user.id, range_key)
         
         output = io.StringIO()
         writer = csv.writer(output)
@@ -758,7 +1280,7 @@ def export_personal():
             io.BytesIO(output.getvalue().encode()),
             mimetype='text/csv',
             as_attachment=True,
-            download_name='expensio_personal_expenses.csv'
+            download_name=f'expensio_personal_expenses_{range_key}.csv'
         )
     except Exception as e:
         flash(f'Error exporting data: {str(e)}', 'error')

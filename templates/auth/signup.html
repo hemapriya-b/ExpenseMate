@@ -4,647 +4,304 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-<style>
-    /* Signup Specific Styles */
-    .signup-container {
-        min-height: calc(100vh - 100px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-    
-    .signup-box {
-        width: 100%;
-        max-width: 480px;
-        animation: fadeInUp 0.6s ease;
-    }
-    
-    .signup-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .signup-header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-        background: var(--secondary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .signup-header p {
-        color: var(--text-muted);
-        font-size: 1.1rem;
-    }
-    
-    .signup-form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
-    
-    .form-group {
-        position: relative;
-    }
-    
-    .form-group.full-width {
-        grid-column: 1 / -1;
-    }
-    
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: var(--text-light);
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-    
-    .form-icon {
-        position: absolute;
-        left: 15px;
-        top: 42px;
-        color: var(--accent-purple);
-        font-size: 1.1rem;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 12px 16px 12px 45px;
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        color: var(--text-light);
-        font-size: 1rem;
-        transition: var(--transition);
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: var(--accent-blue);
-        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
-        background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .password-strength {
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-    }
-    
-    .strength-bar {
-        height: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 2px;
-        margin: 0.25rem 0;
-        overflow: hidden;
-    }
-    
-    .strength-fill {
-        height: 100%;
-        width: 0%;
-        border-radius: 2px;
-        transition: width 0.3s ease;
-    }
-    
-    .strength-weak .strength-fill {
-        background: #ff6b8b;
-        width: 33%;
-    }
-    
-    .strength-medium .strength-fill {
-        background: #ffb74d;
-        width: 66%;
-    }
-    
-    .strength-strong .strength-fill {
-        background: #00ff9d;
-        width: 100%;
-    }
-    
-    .strength-text {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-    }
-    
-    .terms-conditions {
-        grid-column: 1 / -1;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        line-height: 1.5;
-    }
-    
-    .terms-conditions a {
-        color: var(--accent-blue);
-        text-decoration: none;
-    }
-    
-    .terms-conditions a:hover {
-        text-decoration: underline;
-    }
-    
-    .btn-signup {
-        grid-column: 1 / -1;
-        width: 100%;
-        padding: 14px;
-        background: var(--secondary-gradient);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-signup:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4);
-    }
-    
-    .signup-footer {
-        text-align: center;
-        margin-top: 2rem;
-        color: var(--text-muted);
-    }
-    
-    .signup-footer a {
-        color: var(--accent-blue);
-        text-decoration: none;
-        font-weight: 600;
-    }
-    
-    .signup-footer a:hover {
-        text-decoration: underline;
-    }
-    
-    /* Password toggle */
-    .password-toggle {
-        position: absolute;
-        right: 15px;
-        top: 42px;
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        font-size: 1rem;
-        padding: 0;
-    }
-    
-    .password-toggle:hover {
-        color: var(--accent-blue);
-    }
-    
-    /* Form validation styles */
-    .form-control.valid {
-        border-color: var(--success);
-        background: rgba(0, 255, 157, 0.05);
-    }
-    
-    .form-control.invalid {
-        border-color: var(--danger);
-        background: rgba(255, 107, 139, 0.05);
-    }
-    
-    .validation-message {
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-    
-    .valid-message {
-        color: var(--success);
-    }
-    
-    .invalid-message {
-        color: var(--danger);
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .signup-form {
-            grid-template-columns: 1fr;
-        }
-        
-        .form-group.full-width {
-            grid-column: 1;
-        }
-        
-        .terms-conditions {
-            grid-column: 1;
-        }
-        
-        .btn-signup {
-            grid-column: 1;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .signup-box {
-            padding: 1.5rem;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container signup-container">
-    <div class="glass-container auth-box signup-box">
-        <!-- Header -->
-        <div class="signup-header">
-            <h1>Join Expensio</h1>
-            <p>Start managing your finances smartly</p>
-        </div>
-        
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash-message flash-{{ category }} mb-3">
-                        {{ message }}
+<div class="auth-shell">
+    <section class="auth-scene" id="signupScene" data-focus="username">
+        {% set side = 'left' %}
+        {% set character = 'boy' %}
+        {% include 'auth/_character.html' %}
+
+        <main class="auth-panel-wrap">
+            <div class="auth-panel">
+                <div class="auth-kicker">
+                    <i class="fas fa-star"></i>
+                    Interactive Signup
+                </div>
+                <div class="auth-heading">
+                    <h1>Create Your Account</h1>
+                    <p>The characters stay beside the form, greet you by name, and close their eyes when you enter secret fields.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="auth-flashes">
+                            {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('signup') }}" class="auth-form signup-grid" id="signupForm">
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <i class="fas fa-user field-icon"></i>
+                        <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="username" minlength="3" maxlength="20">
+                        <div class="validation-message" id="usernameValidation"></div>
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <!-- Signup Form -->
-        <form method="POST" action="{{ url_for('signup') }}" class="signup-form" id="signupForm">
-            <!-- Username -->
-            <div class="form-group">
-                <label class="form-label" for="username">
-                    <i class="fas fa-user form-icon"></i>
-                    Username
-                </label>
-                <input type="text" 
-                       id="username" 
-                       name="username" 
-                       class="form-control" 
-                       placeholder="Choose a username"
-                       required
-                       autocomplete="username"
-                       minlength="3"
-                       maxlength="20">
-                <div class="validation-message" id="usernameValidation"></div>
-            </div>
-            
-            <!-- Email -->
-            <div class="form-group">
-                <label class="form-label" for="email">
-                    <i class="fas fa-envelope form-icon"></i>
-                    Email
-                </label>
-                <input type="email" 
-                       id="email" 
-                       name="email" 
-                       class="form-control" 
-                       placeholder="your@email.com"
-                       required
-                       autocomplete="email">
-                <div class="validation-message" id="emailValidation"></div>
-            </div>
-            
-            <!-- Password -->
-            <div class="form-group">
-                <label class="form-label" for="password">
-                    <i class="fas fa-lock form-icon"></i>
-                    Password
-                </label>
-                <input type="password" 
-                       id="password" 
-                       name="password" 
-                       class="form-control" 
-                       placeholder="Create a password"
-                       required
-                       autocomplete="new-password"
-                       minlength="6">
-                <button type="button" class="password-toggle" id="togglePassword">
-                    <i class="fas fa-eye"></i>
-                </button>
-                
-                <div class="password-strength" id="passwordStrength">
-                    <div class="strength-bar">
-                        <div class="strength-fill"></div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <i class="fas fa-envelope field-icon"></i>
+                        <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email">
+                        <div class="validation-message" id="emailValidation"></div>
                     </div>
-                    <div class="strength-text">Password strength</div>
+
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="password" name="password" placeholder="Create a password" required autocomplete="new-password" minlength="6">
+                        <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <div class="strength-text">Password strength</div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="confirm_password">Confirm Password</label>
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-label="Toggle confirm password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="validation-message" id="confirmValidation"></div>
+                    </div>
+
+                    <label class="terms-conditions full">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <span>I agree to the <a class="inline-link" href="#">Terms of Service</a> and <a class="inline-link" href="#">Privacy Policy</a>.</span>
+                    </label>
+
+                    <button type="submit" class="submit-btn full" id="signupBtn" disabled>
+                        <i class="fas fa-user-plus"></i>
+                        <span>Create Account</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already registered? <a class="inline-link" href="{{ url_for('login') }}">Login here</a></p>
+                </div>
+
+                <div class="scene-caption">
+                    Username and email react with live messages, while password and confirm password switch the scene into privacy mode.
                 </div>
             </div>
-            
-            <!-- Confirm Password -->
-            <div class="form-group">
-                <label class="form-label" for="confirm_password">
-                    <i class="fas fa-lock form-icon"></i>
-                    Confirm Password
-                </label>
-                <input type="password" 
-                       id="confirm_password" 
-                       name="confirm_password" 
-                       class="form-control" 
-                       placeholder="Confirm your password"
-                       required
-                       autocomplete="new-password">
-                <button type="button" class="password-toggle" id="toggleConfirmPassword">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <div class="validation-message" id="confirmValidation"></div>
-            </div>
-            
-            <!-- Terms & Conditions -->
-            <div class="terms-conditions">
-                <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer;">
-                    <input type="checkbox" name="terms" id="terms" required style="margin-top: 3px;">
-                    <span>
-                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. 
-                        I understand that Expensio will process my data in accordance with these policies.
-                    </span>
-                </label>
-            </div>
-            
-            <!-- Submit Button -->
-            <button type="submit" class="btn-signup" id="signupBtn">
-                <i class="fas fa-user-plus"></i>
-                <span>Create Account</span>
-            </button>
-        </form>
-        
-        <div class="signup-footer">
-            <p>Already have an account? 
-                <a href="{{ url_for('login') }}">Login here</a>
-            </p>
-        </div>
-    </div>
+        </main>
+
+        {% set side = 'right' %}
+        {% set character = 'girl' %}
+        {% include 'auth/_character.html' %}
+    </section>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth-scene.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const signupForm = document.getElementById('signupForm');
-        const signupBtn = document.getElementById('signupBtn');
-        const passwordInput = document.getElementById('password');
-        const confirmInput = document.getElementById('confirm_password');
-        const togglePassword = document.getElementById('togglePassword');
-        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-        const passwordStrength = document.getElementById('passwordStrength');
-        
-        let isPasswordValid = false;
-        let isConfirmValid = false;
-        let isUsernameValid = false;
-        let isEmailValid = false;
-        let isTermsAccepted = false;
-        
-        // Password toggle functionality
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+document.addEventListener('DOMContentLoaded', function () {
+    const signupForm = document.getElementById('signupForm');
+    const signupBtn = document.getElementById('signupBtn');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirm_password');
+    const passwordStrength = document.getElementById('passwordStrength');
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const termsInput = document.getElementById('terms');
+
+    let isUsernameValid = false;
+    let isEmailValid = false;
+    let isPasswordValid = false;
+    let isConfirmValid = false;
+    let isTermsAccepted = false;
+
+    initAuthScene({
+        sceneSelector: '#signupScene',
+        nameSelector: '#username',
+        passwordSelectors: ['#password', '#confirm_password'],
+        leftMessages: {
+            idle: 'Start with your username and I will greet you.',
+            username: 'Pick a username that feels like you.',
+            email: 'Add your email next.',
+            password: 'Eyes closed. Secret mode is on.',
+            confirm_password: 'Confirm it and we are almost done.',
+            namePrefix: 'Hi'
+        },
+        rightMessages: {
+            idle: 'Let us build your account.',
+            username: 'That name already gives the page some personality.',
+            email: 'Great, now add the email you want to use.',
+            password: 'Looking away while you type the password.',
+            confirm_password: 'One more password field and we are set.',
+            namePrefix: 'Welcome'
+        }
+    });
+
+    document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const input = document.getElementById(button.dataset.togglePassword);
+            const hidden = input.type === 'password';
+            input.type = hidden ? 'text' : 'password';
+            button.innerHTML = hidden ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
         });
-        
-        toggleConfirmPassword.addEventListener('click', function() {
-            const type = confirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            confirmInput.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        });
-        
-        // Password strength checker
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            
-            // Length check
-            if (password.length >= 8) strength++;
-            
-            // Lowercase check
-            if (/[a-z]/.test(password)) strength++;
-            
-            // Uppercase check
-            if (/[A-Z]/.test(password)) strength++;
-            
-            // Number check
-            if (/[0-9]/.test(password)) strength++;
-            
-            // Special character check
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-            
-            // Update strength display
-            passwordStrength.className = 'password-strength';
-            const strengthText = passwordStrength.querySelector('.strength-text');
-            
-            if (password.length === 0) {
-                strengthText.textContent = 'Password strength';
-            } else if (strength <= 2) {
-                passwordStrength.classList.add('strength-weak');
-                strengthText.textContent = 'Weak password';
-                strengthText.style.color = '#ff6b8b';
-            } else if (strength <= 4) {
-                passwordStrength.classList.add('strength-medium');
-                strengthText.textContent = 'Medium strength';
-                strengthText.style.color = '#ffb74d';
-            } else {
-                passwordStrength.classList.add('strength-strong');
-                strengthText.textContent = 'Strong password';
-                strengthText.style.color = '#00ff9d';
-            }
-            
-            // Validate password
-            validatePassword();
-        });
-        
-        // Real-time validation
-        document.getElementById('username').addEventListener('input', validateUsername);
-        document.getElementById('email').addEventListener('input', validateEmail);
-        confirmInput.addEventListener('input', validateConfirmPassword);
-        document.getElementById('terms').addEventListener('change', validateTerms);
-        
-        // Validation functions
-        function validateUsername() {
-            const usernameInput = document.getElementById('username');
-            const validationDiv = document.getElementById('usernameValidation');
-            const username = usernameInput.value.trim();
-            
-            if (username.length < 3) {
-                usernameInput.classList.remove('valid');
-                usernameInput.classList.add('invalid');
-                validationDiv.innerHTML = '<i class="fas fa-times-circle"></i> Username must be at least 3 characters';
-                validationDiv.className = 'validation-message invalid-message';
-                isUsernameValid = false;
-            } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                usernameInput.classList.remove('valid');
-                usernameInput.classList.add('invalid');
-                validationDiv.innerHTML = '<i class="fas fa-times-circle"></i> Only letters, numbers, and underscores allowed';
-                validationDiv.className = 'validation-message invalid-message';
-                isUsernameValid = false;
-            } else {
-                usernameInput.classList.remove('invalid');
-                usernameInput.classList.add('valid');
-                validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Username available';
-                validationDiv.className = 'validation-message valid-message';
-                isUsernameValid = true;
-            }
-            
-            updateSubmitButton();
+    });
+
+    function setValidationMessage(element, isValid, message) {
+        element.textContent = message;
+        element.className = isValid ? 'validation-message valid-message' : 'validation-message invalid-message';
+    }
+
+    function clearValidationMessage(element) {
+        element.textContent = '';
+        element.className = 'validation-message';
+    }
+
+    function updateSubmitState() {
+        const allValid = isUsernameValid && isEmailValid && isPasswordValid && isConfirmValid && isTermsAccepted;
+        signupBtn.disabled = !allValid;
+    }
+
+    function validateUsername() {
+        const validationDiv = document.getElementById('usernameValidation');
+        const username = usernameInput.value.trim();
+
+        if (username.length < 3) {
+            usernameInput.classList.add('invalid');
+            usernameInput.classList.remove('valid');
+            setValidationMessage(validationDiv, false, 'Username must be at least 3 characters.');
+            isUsernameValid = false;
+        } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            usernameInput.classList.add('invalid');
+            usernameInput.classList.remove('valid');
+            setValidationMessage(validationDiv, false, 'Use letters, numbers, or underscores only.');
+            isUsernameValid = false;
+        } else {
+            usernameInput.classList.add('valid');
+            usernameInput.classList.remove('invalid');
+            setValidationMessage(validationDiv, true, 'Username looks good.');
+            isUsernameValid = true;
         }
-        
-        function validateEmail() {
-            const emailInput = document.getElementById('email');
-            const validationDiv = document.getElementById('emailValidation');
-            const email = emailInput.value.trim();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
-            if (!emailRegex.test(email)) {
-                emailInput.classList.remove('valid');
-                emailInput.classList.add('invalid');
-                validationDiv.innerHTML = '<i class="fas fa-times-circle"></i> Please enter a valid email address';
-                validationDiv.className = 'validation-message invalid-message';
-                isEmailValid = false;
-            } else {
-                emailInput.classList.remove('invalid');
-                emailInput.classList.add('valid');
-                validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Valid email format';
-                validationDiv.className = 'validation-message valid-message';
-                isEmailValid = true;
-            }
-            
-            updateSubmitButton();
+
+        updateSubmitState();
+    }
+
+    function validateEmail() {
+        const validationDiv = document.getElementById('emailValidation');
+        const email = emailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            emailInput.classList.add('invalid');
+            emailInput.classList.remove('valid');
+            setValidationMessage(validationDiv, false, 'Enter a valid email address.');
+            isEmailValid = false;
+        } else {
+            emailInput.classList.add('valid');
+            emailInput.classList.remove('invalid');
+            setValidationMessage(validationDiv, true, 'Email format looks correct.');
+            isEmailValid = true;
         }
-        
-        function validatePassword() {
-            const password = passwordInput.value;
-            isPasswordValid = password.length >= 6;
-            updateSubmitButton();
-            
-            // Also validate confirm password if it has value
-            if (confirmInput.value) {
-                validateConfirmPassword();
-            }
+
+        updateSubmitState();
+    }
+
+    function validatePassword() {
+        const password = passwordInput.value;
+        let strength = 0;
+
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        passwordStrength.className = 'password-strength';
+        const strengthText = passwordStrength.querySelector('.strength-text');
+
+        if (!password) {
+            strengthText.textContent = 'Password strength';
+        } else if (strength <= 2) {
+            passwordStrength.classList.add('strength-weak');
+            strengthText.textContent = 'Weak password';
+        } else if (strength <= 4) {
+            passwordStrength.classList.add('strength-medium');
+            strengthText.textContent = 'Medium strength';
+        } else {
+            passwordStrength.classList.add('strength-strong');
+            strengthText.textContent = 'Strong password';
         }
-        
-        function validateConfirmPassword() {
-            const validationDiv = document.getElementById('confirmValidation');
-            const password = passwordInput.value;
-            const confirm = confirmInput.value;
-            
-            if (confirm === '') {
-                confirmInput.classList.remove('valid', 'invalid');
-                validationDiv.innerHTML = '';
-                isConfirmValid = false;
-            } else if (password === confirm) {
-                confirmInput.classList.remove('invalid');
-                confirmInput.classList.add('valid');
-                validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
-                validationDiv.className = 'validation-message valid-message';
-                isConfirmValid = true;
-            } else {
-                confirmInput.classList.remove('valid');
-                confirmInput.classList.add('invalid');
-                validationDiv.innerHTML = '<i class="fas fa-times-circle"></i> Passwords do not match';
-                validationDiv.className = 'validation-message invalid-message';
-                isConfirmValid = false;
-            }
-            
-            updateSubmitButton();
+
+        isPasswordValid = password.length >= 6;
+        passwordInput.classList.toggle('valid', isPasswordValid);
+        passwordInput.classList.toggle('invalid', password.length > 0 && !isPasswordValid);
+
+        if (confirmInput.value) validateConfirmPassword();
+        updateSubmitState();
+    }
+
+    function validateConfirmPassword() {
+        const validationDiv = document.getElementById('confirmValidation');
+        const password = passwordInput.value;
+        const confirm = confirmInput.value;
+
+        if (!confirm) {
+            confirmInput.classList.remove('valid', 'invalid');
+            clearValidationMessage(validationDiv);
+            isConfirmValid = false;
+        } else if (password === confirm) {
+            confirmInput.classList.add('valid');
+            confirmInput.classList.remove('invalid');
+            setValidationMessage(validationDiv, true, 'Passwords match.');
+            isConfirmValid = true;
+        } else {
+            confirmInput.classList.add('invalid');
+            confirmInput.classList.remove('valid');
+            setValidationMessage(validationDiv, false, 'Passwords do not match.');
+            isConfirmValid = false;
         }
-        
-        function validateTerms() {
-            const termsCheckbox = document.getElementById('terms');
-            isTermsAccepted = termsCheckbox.checked;
-            updateSubmitButton();
-        }
-        
-        function updateSubmitButton() {
-            const isValid = isUsernameValid && isEmailValid && isPasswordValid && isConfirmValid && isTermsAccepted;
-            
-            if (isValid) {
-                signupBtn.disabled = false;
-                signupBtn.style.opacity = '1';
-                signupBtn.style.cursor = 'pointer';
-            } else {
-                signupBtn.disabled = true;
-                signupBtn.style.opacity = '0.7';
-                signupBtn.style.cursor = 'not-allowed';
-            }
-        }
-        
-        // Form submission
-        signupForm.addEventListener('submit', function(e) {
-            // Final validation
-            validateUsername();
-            validateEmail();
-            validatePassword();
-            validateConfirmPassword();
-            validateTerms();
-            
-            if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmValid || !isTermsAccepted) {
-                e.preventDefault();
-                showError('Please fix all validation errors before submitting.');
-                return;
-            }
-            
-            // Show loading state
-            signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
-            signupBtn.disabled = true;
-        });
-        
-        // Show error function
-        function showError(message) {
-            // Remove existing error
-            const existingError = document.querySelector('.flash-error');
-            if (existingError) existingError.remove();
-            
-            // Create error element
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'flash-message flash-error mb-3';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                ${message}
-                <button class="flash-close">&times;</button>
-            `;
-            
-            // Insert after form header
-            const form = document.querySelector('.signup-form');
-            const header = document.querySelector('.signup-header');
-            header.parentNode.insertBefore(errorDiv, form);
-            
-            // Add close functionality
-            errorDiv.querySelector('.flash-close').addEventListener('click', function() {
-                errorDiv.style.opacity = '0';
-                errorDiv.style.transform = 'translateY(-10px)';
-                setTimeout(() => errorDiv.remove(), 300);
-            });
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (errorDiv.parentElement) {
-                    errorDiv.style.opacity = '0';
-                    errorDiv.style.transform = 'translateY(-10px)';
-                    setTimeout(() => errorDiv.remove(), 300);
-                }
-            }, 5000);
-        }
-        
-        // Initialize validation
+
+        updateSubmitState();
+    }
+
+    function validateTerms() {
+        isTermsAccepted = termsInput.checked;
+        updateSubmitState();
+    }
+
+    usernameInput.addEventListener('input', validateUsername);
+    emailInput.addEventListener('input', validateEmail);
+    passwordInput.addEventListener('input', validatePassword);
+    confirmInput.addEventListener('input', validateConfirmPassword);
+    termsInput.addEventListener('change', validateTerms);
+
+    signupForm.addEventListener('submit', function (event) {
         validateUsername();
         validateEmail();
         validatePassword();
+        validateConfirmPassword();
         validateTerms();
-        
-        // Add some visual effects
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach((input, index) => {
-            input.style.animationDelay = `${index * 0.1}s`;
-            input.style.animation = 'fadeInUp 0.5s ease forwards';
-            input.style.opacity = '0';
-            
-            setTimeout(() => {
-                input.style.opacity = '1';
-            }, 300 + (index * 100));
-        });
+
+        if (!(isUsernameValid && isEmailValid && isPasswordValid && isConfirmValid && isTermsAccepted)) {
+            event.preventDefault();
+            window.alert('Please fix the form errors before creating the account.');
+            return;
+        }
+
+        signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+        signupBtn.disabled = true;
     });
+
+    validateUsername();
+    validateEmail();
+    validatePassword();
+    validateConfirmPassword();
+    validateTerms();
+});
 </script>
 {% endblock %}

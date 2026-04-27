@@ -477,19 +477,19 @@
     
     <!-- Time Range Selector -->
     <div class="time-selector">
-        <button class="time-btn active" data-range="week">
+        <button class="time-btn {% if selected_range == 'week' %}active{% endif %}" data-range="week">
             <i class="fas fa-calendar-week"></i> This Week
         </button>
-        <button class="time-btn" data-range="month">
+        <button class="time-btn {% if selected_range == 'month' %}active{% endif %}" data-range="month">
             <i class="fas fa-calendar-alt"></i> This Month
         </button>
-        <button class="time-btn" data-range="quarter">
+        <button class="time-btn {% if selected_range == 'quarter' %}active{% endif %}" data-range="quarter">
             <i class="fas fa-chart-line"></i> Last 3 Months
         </button>
-        <button class="time-btn" data-range="year">
+        <button class="time-btn {% if selected_range == 'year' %}active{% endif %}" data-range="year">
             <i class="fas fa-calendar-year"></i> This Year
         </button>
-        <button class="time-btn" data-range="all">
+        <button class="time-btn {% if selected_range == 'all' %}active{% endif %}" data-range="all">
             <i class="fas fa-infinity"></i> All Time
         </button>
     </div>
@@ -569,8 +569,8 @@
             <div class="insight-value" id="totalSpending">₹0.00</div>
             <p class="insight-description">Total amount spent in selected period</p>
             <div class="insight-trend trend-up">
-                <i class="fas fa-arrow-up"></i>
-                <span>12% from last period</span>
+                <i class="fas fa-receipt"></i>
+                <span>{{ chart_data.insights.expense_count }} expense records</span>
             </div>
         </div>
         
@@ -584,8 +584,8 @@
             <div class="insight-value" id="topCategory">Food</div>
             <p class="insight-description">Your most frequent expense category</p>
             <div class="insight-trend trend-up">
-                <i class="fas fa-arrow-up"></i>
-                <span>₹2,450 this month</span>
+                <i class="fas fa-tag"></i>
+                <span>₹{{ "%.2f"|format(chart_data.insights.top_amount) }}</span>
             </div>
         </div>
         
@@ -599,8 +599,8 @@
             <div class="insight-value" id="dailyAverage">₹0.00</div>
             <p class="insight-description">Average daily spending</p>
             <div class="insight-trend trend-down">
-                <i class="fas fa-arrow-down"></i>
-                <span>8% lower than last week</span>
+                <i class="fas fa-calendar-check"></i>
+                <span>Selected period average</span>
             </div>
         </div>
         
@@ -615,7 +615,7 @@
             <p class="insight-description">Monthly budget utilization</p>
             <div class="insight-trend">
                 <i class="fas fa-info-circle"></i>
-                <span>₹2,500 remaining</span>
+                <span>Based on a ₹10,000 monthly guide</span>
             </div>
         </div>
     </div>
@@ -647,20 +647,20 @@
         <div class="comparison-grid">
             <div class="comparison-card">
                 <div class="comparison-period">Current Month</div>
-                <div class="comparison-amount">₹12,450</div>
-                <div class="comparison-change change-positive">+8%</div>
+                <div class="comparison-amount">₹{{ "%.2f"|format(chart_data.comparison.current_month) }}</div>
+                <div class="comparison-change change-positive">{{ chart_data.insights.expense_count }} records</div>
             </div>
             
             <div class="comparison-card">
                 <div class="comparison-period">Last Month</div>
-                <div class="comparison-amount">₹11,520</div>
-                <div class="comparison-change change-negative">-5%</div>
+                <div class="comparison-amount">₹{{ "%.2f"|format(chart_data.comparison.previous_month) }}</div>
+                <div class="comparison-change change-negative">Previous period</div>
             </div>
             
             <div class="comparison-card">
                 <div class="comparison-period">3-Month Average</div>
-                <div class="comparison-amount">₹10,890</div>
-                <div class="comparison-change change-positive">+12%</div>
+                <div class="comparison-amount">₹{{ "%.2f"|format(chart_data.comparison.three_month_average) }}</div>
+                <div class="comparison-change change-positive">Rolling average</div>
             </div>
         </div>
     </div>
@@ -672,15 +672,15 @@
             <p>Download your expense data and charts for further analysis or record keeping.</p>
         </div>
         <div class="export-options">
-            <a href="{{ url_for('export_personal') }}" class="btn btn-primary">
+            <a href="{{ url_for('export_personal', range=selected_range) }}" class="btn btn-primary">
                 <i class="fas fa-file-csv"></i> Export as CSV
             </a>
             <button class="btn btn-outline" onclick="exportAllCharts()">
                 <i class="fas fa-file-image"></i> Export Charts as PNG
             </button>
-            <button class="btn btn-outline" onclick="generateReport()">
-                <i class="fas fa-file-pdf"></i> Generate PDF Report
-            </button>
+            <a href="{{ url_for('export_page') }}" class="btn btn-outline">
+                <i class="fas fa-file-export"></i> Export Center
+            </a>
         </div>
     </div>
     
@@ -723,17 +723,18 @@
         '#F093FB', // Light Pink
         '#F5576C'  // Red
     ];
+    const chartPayload = {{ chart_data|tojson }};
     
     // Initialize charts when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
         // Time range selector
-        const timeButtons = document.querySelectorAll('.time-btn');
+        const timeButtons = document.querySelectorAll('.time-btn[data-range]');
         timeButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 timeButtons.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
-                const range = this.getAttribute('data-range');
+                const range = this.getAttribute('data-range') || 'all';
                 updateCharts(range);
                 
                 // Add animation
@@ -780,15 +781,7 @@
     
     // Prepare Pie Chart Data
     function preparePieChartData() {
-        // Sample data - in real app, this would come from backend
-        const categories = {
-            'Food': 4500,
-            'Travel': 3200,
-            'Shopping': 2800,
-            'Entertainment': 1500,
-            'Bills': 1200,
-            'Other': 800
-        };
+        const categories = chartPayload.categories || {};
         
         return {
             labels: Object.keys(categories),
@@ -860,13 +853,11 @@
     
     // Prepare Bar Chart Data
     function prepareBarChartData() {
-        // Sample data - in real app, this would come from backend
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthlyData = [4500, 5200, 4800, 6100, 5800, 7200, 6800, 7500, 6200, 5900, 7100, 8000];
+        const monthlyData = chartPayload.monthly_data || {};
         
         return {
-            labels: months.slice(0, 6), // Last 6 months
-            data: monthlyData.slice(0, 6),
+            labels: Object.keys(monthlyData),
+            data: Object.values(monthlyData),
             color: chartColors[1]
         };
     }
@@ -937,36 +928,9 @@
     
     // Update charts based on time range
     function updateCharts(range) {
-        // Show loading state
-        const chartCards = document.querySelectorAll('.chart-card');
-        chartCards.forEach(card => {
-            card.style.opacity = '0.7';
-        });
-        
-        // Simulate API call
-        setTimeout(() => {
-            // Update pie chart data based on range
-            const pieData = preparePieChartData();
-            updatePieChart(pieData);
-            
-            // Update bar chart data based on range
-            const barData = prepareBarChartData();
-            updateBarChart(barData);
-            
-            // Update insights
-            updateInsights();
-            
-            // Update category list
-            updateCategoryList();
-            
-            // Restore opacity
-            chartCards.forEach(card => {
-                card.style.opacity = '1';
-            });
-            
-            // Show success message
-            showFlash(`Charts updated for ${range} period`, 'success');
-        }, 500);
+        const url = new URL(window.location.href);
+        url.searchParams.set('range', range);
+        window.location.href = url.toString();
     }
     
     // Update Pie Chart
@@ -1036,16 +1000,14 @@
         const barData = prepareBarChartData();
         
         // Calculate total spending
-        const totalSpending = pieData.data.reduce((a, b) => a + b, 0);
+        const totalSpending = Number(chartPayload.insights.total_spending || 0);
         document.getElementById('totalSpending').textContent = `₹${totalSpending.toLocaleString()}`;
         
         // Find top category
-        const maxValue = Math.max(...pieData.data);
-        const topCategoryIndex = pieData.data.indexOf(maxValue);
-        document.getElementById('topCategory').textContent = pieData.labels[topCategoryIndex];
+        document.getElementById('topCategory').textContent = chartPayload.insights.top_category || 'N/A';
         
-        // Calculate daily average (assuming 30 days)
-        const dailyAverage = totalSpending / 30;
+        // Calculate daily average from the selected backend range
+        const dailyAverage = Number(chartPayload.insights.daily_average || 0);
         document.getElementById('dailyAverage').textContent = `₹${dailyAverage.toFixed(2)}`;
         
         // Update budget status
@@ -1101,13 +1063,11 @@
     
     // Export All Charts
     function exportAllCharts() {
-        // In a real implementation, this would create a ZIP file with all charts
-        showFlash('Preparing chart package for download...', 'info');
-        
+        downloadChart('pieChart', 'expense-distribution.png');
         setTimeout(() => {
-            // Simulate download
+            downloadChart('barChart', 'monthly-spending.png');
             showFlash('Charts exported successfully!', 'success');
-        }, 1500);
+        }, 300);
     }
     
     // Generate PDF Report

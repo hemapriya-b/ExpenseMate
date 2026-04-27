@@ -229,11 +229,19 @@
         margin-bottom: 0.5rem;
     }
     
-    .detail-value {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--text-light);
-    }
+        .detail-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .detail-value.warning {
+            color: var(--warning);
+        }
+
+        .detail-value.success {
+            color: var(--success);
+        }
     
     /* Form Actions */
     .form-actions {
@@ -440,8 +448,7 @@
                        id="roomName" 
                        name="room_name" 
                        class="form-control" 
-                       placeholder="Enter the exact room name"
-                       required>
+                       placeholder="Optional: enter the room name">
             </div>
             
             <div class="input-group">
@@ -452,13 +459,13 @@
                        id="roomCode" 
                        name="room_code" 
                        class="form-control" 
-                       placeholder="Enter 6-digit room code"
+                       placeholder="Enter room code"
                        required
-                       maxlength="6"
-                       pattern="[A-Z0-9]{6}"
-                       title="Please enter a 6-character room code (letters and numbers only)">
+                       maxlength="50"
+                       pattern="[A-Za-z0-9]+"
+                       title="Please enter the room code using letters and numbers only">
                 <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">
-                    Case-sensitive 6-character code (e.g., ABC123)
+                    Enter the code shared by the room creator.
                 </small>
             </div>
             
@@ -523,56 +530,7 @@
             </p>
         </div>
         
-        <!-- Sample Invitations (for demo) -->
-        <div class="invitations-grid" id="invitationsGrid" style="display: none;">
-            <!-- Invitation 1 -->
-            <div class="invitation-card">
-                <div class="invitation-header">
-                    <div class="invitation-name">Goa Trip 2024</div>
-                    <div class="invitation-code">GOA2024</div>
-                </div>
-                <p class="invitation-description">
-                    Planning expenses for our annual Goa trip. Let's track flights, accommodation, and activities together.
-                </p>
-                <div class="invitation-stats">
-                    <div class="invitation-stat">
-                        <i class="fas fa-users"></i>
-                        <span>4 members</span>
-                    </div>
-                    <div class="invitation-stat">
-                        <i class="fas fa-calendar"></i>
-                        <span>Created: Jan 15</span>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-sm w-100 mt-2">
-                    <i class="fas fa-check"></i> Accept Invitation
-                </button>
-            </div>
-            
-            <!-- Invitation 2 -->
-            <div class="invitation-card">
-                <div class="invitation-header">
-                    <div class="invitation-name">Office Team Lunch</div>
-                    <div class="invitation-code">LUNCH01</div>
-                </div>
-                <p class="invitation-description">
-                    Monthly team lunch expenses. Split bills and track who paid for what.
-                </p>
-                <div class="invitation-stats">
-                    <div class="invitation-stat">
-                        <i class="fas fa-users"></i>
-                        <span>8 members</span>
-                    </div>
-                    <div class="invitation-stat">
-                        <i class="fas fa-calendar"></i>
-                        <span>Created: Jan 10</span>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-sm w-100 mt-2">
-                    <i class="fas fa-check"></i> Accept Invitation
-                </button>
-            </div>
-        </div>
+        <div class="invitations-grid" id="invitationsGrid" style="display: none;"></div>
     </div>
 </div>
 {% endblock %}
@@ -626,9 +584,8 @@
             inviteMethodCard.classList.add('active');
             codeMethodCard.classList.remove('active');
             
-            // Show demo invitations
-            emptyInvitations.style.display = 'none';
-            invitationsGrid.style.display = 'grid';
+            emptyInvitations.style.display = 'block';
+            invitationsGrid.style.display = 'none';
         });
         
         // Back to methods
@@ -639,90 +596,92 @@
             inviteMethodCard.classList.remove('active');
         });
         
+        let previewTimer = null;
+        let previewRequest = null;
+
         // Auto-format room code
         roomCodeInput.addEventListener('input', function() {
             this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             
-            // Check if code is complete
-            if (this.value.length === 6) {
+            // Show the preview once the code is long enough to be useful.
+            if (this.value.length >= 3) {
                 validateRoomCode();
             } else {
                 roomInfoPreview.classList.remove('active');
             }
         });
+
+        roomNameInput.addEventListener('input', function() {
+            if (roomCodeInput.value.length >= 3) {
+                validateRoomCode();
+            }
+        });
         
-        // Validate room code (simulated for demo)
+        // Validate room code against real rooms in the database
         function validateRoomCode() {
             const roomName = roomNameInput.value.trim();
             const roomCode = roomCodeInput.value;
             
-            if (roomName && roomCode.length === 6) {
-                // Simulate API call with sample data
-                setTimeout(() => {
-                    // Sample room data (in real app, this would come from backend)
-                    const sampleRooms = {
-                        'GOATRIP': {
-                            name: 'Goa Trip 2024',
-                            creator: 'Alex Johnson',
-                            members: 4,
-                            status: 'Active'
-                        },
-                        'OFFICE': {
-                            name: 'Office Team Lunch',
-                            creator: 'Sarah Williams',
-                            members: 8,
-                            status: 'Active'
-                        },
-                        'FAMILY': {
-                            name: 'Family Gathering',
-                            creator: 'Michael Brown',
-                            members: 6,
-                            status: 'Active'
-                        }
-                    };
-                    
-                    const roomData = sampleRooms[roomCode] || {
-                        name: roomName,
-                        creator: 'Unknown',
-                        members: Math.floor(Math.random() * 10) + 1,
-                        status: 'Active'
-                    };
-                    
-                    // Update preview
-                    previewRoomName.textContent = roomData.name;
-                    previewCreator.textContent = roomData.creator;
-                    previewMembers.textContent = `${roomData.members} members`;
-                    previewStatus.textContent = roomData.status;
-                    
-                    // Set status color
-                    if (roomData.status === 'Active') {
-                        previewStatus.style.color = 'var(--success)';
-                    } else {
-                        previewStatus.style.color = 'var(--warning)';
+            if (roomCode.length >= 3) {
+                clearTimeout(previewTimer);
+                previewRoomName.textContent = 'Checking...';
+                previewCreator.textContent = '-';
+                previewMembers.textContent = '-';
+                previewStatus.textContent = '-';
+                previewStatus.className = 'detail-value';
+                roomInfoPreview.classList.add('active');
+
+                previewTimer = setTimeout(() => {
+                    if (previewRequest) {
+                        previewRequest.abort();
                     }
-                    
-                    // Show preview
-                    roomInfoPreview.classList.add('active');
-                    
-                }, 500);
+
+                    const params = new URLSearchParams({
+                        room_code: roomCode,
+                        room_name: roomName
+                    });
+
+                    previewRequest = new AbortController();
+
+                    fetch(`{{ url_for("room_preview") }}?${params.toString()}`, {
+                        signal: previewRequest.signal
+                    })
+                        .then(async response => {
+                            const data = await response.json();
+                            if (!response.ok || !data.found) {
+                                throw new Error(data.message || 'Room not found');
+                            }
+                            return data;
+                        })
+                        .then(roomData => {
+                            previewRoomName.textContent = roomData.name;
+                            previewCreator.textContent = roomData.creator;
+                            previewMembers.textContent = `${roomData.members} ${roomData.members === 1 ? 'member' : 'members'}`;
+                            previewStatus.textContent = roomData.status;
+                            previewStatus.className = `detail-value ${roomData.already_member ? 'warning' : 'success'}`;
+                            joinRoomBtn.disabled = false;
+                        })
+                        .catch(error => {
+                            if (error.name === 'AbortError') return;
+
+                            previewRoomName.textContent = roomName || roomCode;
+                            previewCreator.textContent = '-';
+                            previewMembers.textContent = '-';
+                            previewStatus.textContent = error.message;
+                            previewStatus.className = 'detail-value warning';
+                            joinRoomBtn.disabled = false;
+                        });
+                }, 300);
             }
         }
         
         // Form validation
         joinRoomForm.addEventListener('submit', function(e) {
-            const roomName = roomNameInput.value.trim();
             const roomCode = roomCodeInput.value.trim();
-            
-            if (!roomName) {
+
+            if (!roomCode) {
                 e.preventDefault();
-                showError('Please enter the room name');
-                roomNameInput.focus();
-                return;
-            }
-            
-            if (!roomCode || roomCode.length !== 6) {
-                e.preventDefault();
-                showError('Please enter a valid 6-character room code');
+                showError('Please enter the room code');
                 roomCodeInput.focus();
                 return;
             }
@@ -730,21 +689,6 @@
             // Show loading state
             joinRoomBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
             joinRoomBtn.disabled = true;
-        });
-        
-        // Auto-fill demo data for testing
-        function fillDemoData() {
-            roomNameInput.value = 'Goa Trip 2024';
-            roomCodeInput.value = 'GOATRIP';
-            validateRoomCode();
-        }
-        
-        // Quick fill for demo (Ctrl+D)
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'd') {
-                e.preventDefault();
-                fillDemoData();
-            }
         });
         
         // Refresh invitations
@@ -760,8 +704,7 @@
                 refreshBtn.innerHTML = originalHTML;
                 refreshBtn.disabled = false;
                 
-                // Show success message
-                showFlash('Invitations refreshed successfully', 'success');
+                showFlash('No invitations found', 'info');
             }, 1500);
         };
         

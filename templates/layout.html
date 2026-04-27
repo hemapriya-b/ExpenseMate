@@ -40,6 +40,12 @@
                 <a href="{{ url_for('charts') }}" class="nav-link">
                     <i class="fas fa-chart-pie"></i> Charts
                 </a>
+                <a href="{{ url_for('personal_expense') }}" class="nav-link">
+                    <i class="fas fa-wallet"></i> Personal Expenses
+                </a>
+                <a href="{{ url_for('export_page') }}" class="nav-link">
+                    <i class="fas fa-file-export"></i> Export
+                </a>
                 <a href="{{ url_for('about') }}" class="nav-link">
                     <i class="fas fa-info-circle"></i> About
                 </a>
@@ -51,9 +57,6 @@
                         <i class="fas fa-user-circle"></i> {{ current_user.username }}
                     </button>
                     <div class="dropdown-menu">
-                        <a href="{{ url_for('personal_expense') }}" class="dropdown-item">
-                            <i class="fas fa-wallet"></i> Personal Expenses
-                        </a>
                         <a href="{{ url_for('logout') }}" class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
@@ -82,6 +85,44 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+
+    <button class="guide-button" type="button" id="guideButton" aria-haspopup="dialog" aria-controls="guideModal">
+        <span class="guide-button-icon"><i class="fas fa-circle-question"></i></span>
+        <span>Guide</span>
+    </button>
+
+    <div class="guide-modal" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle" aria-hidden="true">
+        <div class="guide-modal-panel">
+            <div class="guide-modal-header">
+                <div>
+                    <div class="guide-kicker">How this page works</div>
+                    <h2 id="guideTitle">{{ page_guide.title }}</h2>
+                </div>
+                <button class="guide-close" type="button" id="guideClose" aria-label="Close guide">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="guide-intro">{{ page_guide.intro }}</p>
+            <div class="guide-grid">
+                <div class="guide-card">
+                    <h3><i class="fas fa-list-check"></i> Logic</h3>
+                    <ol class="guide-steps">
+                        {% for step in page_guide.steps %}
+                        <li>{{ step }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+                <div class="guide-card guide-card-accent">
+                    <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+                    <ul class="guide-tips">
+                        {% for tip in page_guide.tips %}
+                        <li>{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
